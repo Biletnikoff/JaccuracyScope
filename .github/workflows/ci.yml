@@ -20,3 +20,16 @@ jobs:
         run: |
           cd Display/Balls
           gcc -fPIC -shared -o GNUball3.so exportme3.c -lm -Wall -Werror
+
+  test:
+    runs-on: ubuntu-latest
+    needs: [lint, compile-c]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile C library
+        run: cd Display/Balls && gcc -fPIC -shared -o GNUball3.so exportme3.c -lm
+      - run: pip install pytest numpy pillow
+      - run: python -m pytest tests/ -v
