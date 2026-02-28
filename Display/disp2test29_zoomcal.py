@@ -22,32 +22,18 @@ import numpy as np
 import math
 
 
-import CamThreader 
+from BallisticThreader import BallisticThread, clamp
+from CamThreader import CamThread
 
-#import SensorThreader 
+bt = BallisticThread(enable_printer=True, enable_laser=False)
+bt.daemon = True
+bt.start()
 
-import BallisticThreaderAdvancedExtension as BallisticThreader
+cam = CamThread(fps_mode='fast')
+cam.daemon = True
+cam.start()
 
 from config import ASSETS_DIR
-
-VALID_RANGES = {
-    'caliber': (0.17, 1.0),
-    'bullet_weight_grain': (10, 1000),
-    'bc7_box': (0.01, 1.5),
-    'fps_box': (100, 5000),
-    'Atm_altitude': (-1000, 50000),
-    'Atm_pressure': (20.0, 35.0),
-    'Atm_temperature': (-60, 140),
-    'Atm_RelHumidity': (0.0, 1.0),
-    'zerodistance': (10, 2000),
-    'windspeed': (0, 100),
-}
-
-
-def clamp(value, key):
-    lo, hi = VALID_RANGES[key]
-    return max(lo, min(hi, value))
-
 
 import RPi.GPIO as GPIO 
 
@@ -208,7 +194,7 @@ distance = 485.0
 inc= 1
 pos = 270
 
-fpsCAM  = CamThreader.thread.get_fps()
+fpsCAM  = cam.get_fps()
 fpsavefr= 0 
    
 
@@ -216,8 +202,8 @@ fpsavefr= 0
 looper= True
 
 ChooseSolver = "GNUsolver"  #"Jacksolver"   or "GNUsolver" 
-BallisticThreader.thread.solver = ChooseSolver
-#BallisticThreader.thread.solver = "GNUsolver"
+bt.solver = ChooseSolver
+#bt.solver = "GNUsolver"
 
 
 #variables needed for impact Preview box and smoothing 
@@ -232,7 +218,7 @@ dropcounter = 0
 
 
 #starting Zoom of camera 
-CamThreader.thread.zoom = 1.0
+cam.zoom = 1.0
 zoomtest = False
 zoomtester = 0
 zoomincrease = 1 
@@ -280,8 +266,8 @@ changeOpitcs = 0
 
 
 
-CamThreader.thread.clicky   = int(scopeyoffset  * opticres)
-CamThreader.thread.clicky   = int(scopeyoffset  * opticres) 
+cam.clicky   = int(scopeyoffset  * opticres)
+cam.clicky   = int(scopeyoffset  * opticres) 
 
 
 
@@ -358,14 +344,14 @@ def main():
             
             
             if ( Scope_mode == 0):   #0 is regular scope #1 is LOBSTER mode 
-                BallisticThreader.thread.ScopeMode =0
-                BallisticThreader.thread.dt = 0.05
-                BallisticThreader.thread.T = 3
+                bt.ScopeMode =0
+                bt.dt = 0.05
+                bt.T = 3
             
             
             
-                pasteimage4 = CamThreader.thread.get_frame() # get new frame from thread 
-                fpsCAM  = CamThreader.thread.get_fps()  #grab the output 
+                pasteimage4 = cam.get_frame() # get new frame from thread 
+                fpsCAM  = cam.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 pasteimage4=pasteimage4.resize((240,180),resample=Image.NEAREST) #BIG FPS nearest is fast 
                 
@@ -375,17 +361,17 @@ def main():
                 
                 
                 #correct the approximate math 
-                if (CamThreader.thread.zoom > (1/2.0)): #2.9
+                if (cam.zoom > (1/2.0)): #2.9
                     scopexoffset = 0   #angle right 20  MOA 
                     scopeyoffset = 0 #angle up 40 MOA 
-                    CamThreader.thread.clickx   = int(scopexoffset  * opticPercent* 2028)     #for Mode 1 camera 
-                    CamThreader.thread.clicky   = int(scopeyoffset  * opticPercent* 2028)               
+                    cam.clickx   = int(scopexoffset  * opticPercent* 2028)     #for Mode 1 camera 
+                    cam.clicky   = int(scopeyoffset  * opticPercent* 2028)               
                 else: 
                     scopexoffset = inputXShift  #angle right 20  MOA 
                     scopeyoffset = inputYShift                  #angle up 40 MOA 
-                    CamThreader.thread.clickx   = int(scopexoffset  * opticPercent* 2028)
-                    CamThreader.thread.clicky   = int(scopeyoffset  * opticPercent * 2028)
-                    #print(CamThreader.thread.clicky)
+                    cam.clickx   = int(scopexoffset  * opticPercent* 2028)
+                    cam.clicky   = int(scopeyoffset  * opticPercent * 2028)
+                    #print(cam.clicky)
                 
                 
                 
@@ -400,22 +386,22 @@ def main():
                         zoomtester = 0
                         
                         if (zoomincrease == 1):
-                            CamThreader.thread.zoom = CamThreader.thread.zoom/1.01  #/2
+                            cam.zoom = cam.zoom/1.01  #/2
                             #scopexoffset = (scopexoffset + .125) 
                         # scopeyoffset = (scopeyoffset + (.1)) 
-                            #CamThreader.thread.clickx   = int(scopexoffset  * 14)
-                            #CamThreader.thread.clicky   = int(scopeyoffset  * 14)
+                            #cam.clickx   = int(scopexoffset  * 14)
+                            #cam.clicky   = int(scopeyoffset  * 14)
                             
-                            if (CamThreader.thread.zoom < (0.0626)):   
+                            if (cam.zoom < (0.0626)):   
                                 zoomincrease = 0 
                                         
                         else: 
-                            CamThreader.thread.zoom = CamThreader.thread.zoom*1.01 #*2
+                            cam.zoom = cam.zoom*1.01 #*2
                             #scopexoffset = (scopexoffset -.125) 
                             #scopeyoffset = (scopeyoffset - (.1) ) 
-                            #CamThreader.thread.clickx   = int(scopexoffset * 14)
-                            #CamThreader.thread.clicky   = int(scopeyoffset  * 14)
-                            if (CamThreader.thread.zoom > (0.90)):
+                            #cam.clickx   = int(scopexoffset * 14)
+                            #cam.clicky   = int(scopeyoffset  * 14)
+                            if (cam.zoom > (0.90)):
                                 zoomincrease = 1             
                         
                     
@@ -445,7 +431,7 @@ def main():
                 wobbleY = 0#SensorThreader.thread.wobbleY
                 wobbleX = 0#SensorThreader.thread.wobbleX
                 wobble_radius = (math.sqrt((wobbleY*wobbleY)+(wobbleX*wobbleX))) + 2  
-                sight_angle = ( BallisticThreader.thread.gunSightangle * math.pi/180)#rads 
+                sight_angle = ( bt.gunSightangle * math.pi/180)#rads 
                 
                 
                 vstart= 2600*0.3048 #mps   #input 2600 from settings somewhere... with space.. 
@@ -460,28 +446,25 @@ def main():
                 pos = head
                 
                 #Standard input vals to the ballthreader 
-                BallisticThreader.thread.x0in = 0.0
-                BallisticThreader.thread.y0in = startheight
-                BallisticThreader.thread.Vx0in = Vx0x
-                BallisticThreader.thread.Vy0in = Vy0y
-                BallisticThreader.thread.targetdistin =  distance_m
+                bt.x0in = 0.0
+                bt.y0in = startheight
+                bt.Vx0in = Vx0x
+                bt.Vy0in = Vy0y
+                bt.targetdistin =  distance_m
                 
-                if (BallisticThreader.thread.solver == "GNUsolver"):
-                    BallisticThreader.thread.elevation0in = pitch_d
+                if (bt.solver == "GNUsolver"):
+                    bt.elevation0in = pitch_d
                 else: 
-                    BallisticThreader.thread.elevation0in = pitch
+                    bt.elevation0in = pitch
                 
                 
                         #Wind Inputs for Solution 
-                BallisticThreader.thread.facing = head  
-                BallisticThreader.thread.windspeed = clamp(fakewindspeed, 'windspeed')
-                BallisticThreader.thread.wind_head_deg = fakewindheading
+                bt.facing = head  
+                bt.windspeed = clamp(fakewindspeed, 'windspeed')
+                bt.wind_head_deg = fakewindheading
                 
                 
-                fpsBalls = BallisticThreader.thread.fpsaveout
-                
-                solution = BallisticThreader.thread.solution
-                plot = BallisticThreader.thread.plotter
+                solution, plot, fpsBalls, _ = bt.get_output()
                 
                 
             
@@ -494,18 +477,18 @@ def main():
                 #REsults
                 hit = ((solution[1] - math.sin(pitch - pitch_fake)*distance))
                 
-                if (BallisticThreader.thread.solver == "GNUsolver"):
+                if (bt.solver == "GNUsolver"):
                     dropmoa = solution[6]
                     #dropmoa = -40
                 else: 
                 
                     #print(solution)
-                    dropmoa = (-pitch + math.atan((solution[1]-((BallisticThreader.thread.scope_height*0.0254)+startheight))/solution[0]))*(180 / math.pi ) *60 - (BallisticThreader.thread.gunSightangle*60) #Needs looked at, scope height
-                    #dropmoa   = ((solution[1] - startheight-(BallisticThreader.thread.scope_height*0.0254))*39.3701) / ((solution[0]/91.44) * 1.047) #works????????? idk lol 
-                    #dropmoa = ((solution[1]-startheight)*39) * 91.44 / (solution[0] * 1.047) - (BallisticThreader.thread.gunSightangle*60)
+                    dropmoa = (-pitch + math.atan((solution[1]-((bt.scope_height*0.0254)+startheight))/solution[0]))*(180 / math.pi ) *60 - (bt.gunSightangle*60) #Needs looked at, scope height
+                    #dropmoa   = ((solution[1] - startheight-(bt.scope_height*0.0254))*39.3701) / ((solution[0]/91.44) * 1.047) #works????????? idk lol 
+                    #dropmoa = ((solution[1]-startheight)*39) * 91.44 / (solution[0] * 1.047) - (bt.gunSightangle*60)
                     
                 ##print(dropmoa);
-                if (BallisticThreader.thread.solver == "GNUsolver"):
+                if (bt.solver == "GNUsolver"):
                     windmoa = solution[4]
                     #windmoa = -20
                 else: 
@@ -528,7 +511,7 @@ def main():
     
                 
                 #Apply scaling of camera to droppixels 
-                scaling = CamThreader.thread.zoom
+                scaling = cam.zoom
                 
             
                 
@@ -583,8 +566,8 @@ def main():
                 
                 #######DrawZoomLevel
                 
-                #thezoom = int(1/CamThreader.thread.zoom)
-                MESSAGE = str("{:.1f}".format(1/CamThreader.thread.zoom)) + "x" 
+                #thezoom = int(1/cam.zoom)
+                MESSAGE = str("{:.1f}".format(1/cam.zoom)) + "x" 
                 draw.text((2,180), MESSAGE, spacing = 1, font=fontL, fill=(255, 255, 255))
                 
                 #######DrawScope Offsets 
@@ -748,9 +731,9 @@ def main():
             
             
             elif (Scope_mode == 1):   #LOBSTER MODE 
-                BallisticThreader.thread.ScopeMode =1    #Scope_mode
-                BallisticThreader.thread.dt = 2
-                BallisticThreader.thread.T = 60
+                bt.ScopeMode =1    #Scope_mode
+                bt.dt = 2
+                bt.T = 60
                 
                 img.paste(image_lob,(0,0))
                 
@@ -779,7 +762,7 @@ def main():
                 wobbleY = 0#SensorThreader.thread.wobbleY
                 wobbleX = 0#SensorThreader.thread.wobbleX
                 wobble_radius = (math.sqrt((wobbleY*wobbleY)+(wobbleX*wobbleX))) + 2  
-                sight_angle = (BallisticThreader.thread.gunSightangle * math.pi/180)#rads 
+                sight_angle = (bt.gunSightangle * math.pi/180)#rads 
                 
                 
                 vstart= 2600*0.3048 #mps   #input 2600 from settings somewhere... with space.. 
@@ -792,32 +775,27 @@ def main():
                 pos = head
                 
                 #Standard input vals to the ballthreader 
-                BallisticThreader.thread.x0in = 0.0
-                BallisticThreader.thread.y0in = startheight
-                BallisticThreader.thread.Vx0in = Vx0x
-                BallisticThreader.thread.Vy0in = Vy0y
-                BallisticThreader.thread.targetdistin =  distance_m
-                BallisticThreader.thread.elevation0in = pitch
+                bt.x0in = 0.0
+                bt.y0in = startheight
+                bt.Vx0in = Vx0x
+                bt.Vy0in = Vy0y
+                bt.targetdistin =  distance_m
+                bt.elevation0in = pitch
                 
                         #Wind Inputs for Solution 
-                BallisticThreader.thread.facing = head  
-                BallisticThreader.thread.windspeed = clamp(0, 'windspeed')
-                BallisticThreader.thread.wind_head_deg = 0
+                bt.facing = head  
+                bt.windspeed = clamp(0, 'windspeed')
+                bt.wind_head_deg = 0
                 
                 
-                fpsBalls = BallisticThreader.thread.fpsaveout
-                
-                solutionLob = BallisticThreader.thread.solution
-                plotLob = BallisticThreader.thread.plotter            
-                
-                
+                solutionLob, plotLob, fpsBalls, _maxh = bt.get_output()
+                howhighdiditgo = _maxh * 3.28084 / 1000
+
                 ####Draw the Plot at bottom using Paste Function 
                 img.paste(plotLob,(0,0))  
                 
                 
-                ##Draw Score 
-                
-                howhighdiditgo = BallisticThreader.thread.maxheight*3.28084/1000
+                ##Draw Score
                 #print(howhighdiditgo)
                 
                 
@@ -850,10 +828,10 @@ def main():
             
                 
             elif(Scope_mode == 2):  #settings menu 
-                BallisticThreader.thread.ScopeMode =2  #not use ballistics in background when settings 
-                BallisticThreader.thread.dt = 1
-                BallisticThreader.thread.T = 2
-                fpsBalls = BallisticThreader.thread.fpsaveout
+                bt.ScopeMode =2  #not use ballistics in background when settings 
+                bt.dt = 1
+                bt.T = 2
+                fpsBalls = bt.get_output()[2]
             
             
                 img.paste(image_settings,(0,0))
@@ -871,26 +849,26 @@ def main():
                 
                 #Draw current settings 
                 #cailber
-                MESSAGE = str("{:.3f}".format(BallisticThreader.thread.caliber))        
+                MESSAGE = str("{:.3f}".format(bt.caliber))        
                 draw.text((136, yposition[0]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
                 
                 #weight
-                MESSAGE = str(int(BallisticThreader.thread.bullet_weight_grain)  )    
+                MESSAGE = str(int(bt.bullet_weight_grain)  )    
                 draw.text((136, yposition[1]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
     
                 #G model  
-                if (BallisticThreader.thread.Gsolver == 1):
+                if (bt.Gsolver == 1):
                     draw.rectangle((148, yposition[2]-3, 148+25, yposition[2]+17), outline = (255, 255, 255))            
-                elif (BallisticThreader.thread.Gsolver == 7):
+                elif (bt.Gsolver == 7):
                     draw.rectangle((180, yposition[2]-3, 180+25, yposition[2]+17), outline = (255, 255, 255)) 
     
     
                 #BC      
-                MESSAGE = str("{:.3f}".format(BallisticThreader.thread.bc7_box))        
+                MESSAGE = str("{:.3f}".format(bt.bc7_box))        
                 draw.text((136, yposition[3]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
     
                 #Zero Distance       
-                MESSAGE = str(int(BallisticThreader.thread.zerodistance))        
+                MESSAGE = str(int(bt.zerodistance))        
                 draw.text((136, yposition[4]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
                             
                 #Reticle    
@@ -942,11 +920,11 @@ def main():
             
             if (Scope_mode != 2):
                 if (pitch_d > 38.0):
-                    BallisticThreader.thread.solver = "Jacksolver"
+                    bt.solver = "Jacksolver"
                     #time.sleep(0.3)
                     Scope_mode = 1 
                 else: 
-                    BallisticThreader.thread.solver = ChooseSolver
+                    bt.solver = ChooseSolver
                     #time.sleep(0.3)
                     Scope_mode = 0 
                 
@@ -1782,13 +1760,13 @@ def LEFT_switch_callback(channel):      ##### SETTUNG
 
 def UP_switch_callback(channel):      ##### SETTUNG
     
-    CamThreader.thread.zoom = CamThreader.thread.zoom *1.05  #+ 0.0625
+    cam.zoom = cam.zoom *1.05  #+ 0.0625
     
     print('Switch UP pressed')   
     
 def DOWN_switch_callback(channel):      ##### SETTUNG
  
-    CamThreader.thread.zoom = CamThreader.thread.zoom  / 1.05  #- 0.0625
+    cam.zoom = cam.zoom  / 1.05  #- 0.0625
     
     print('Switch DOWN pressed')       
     

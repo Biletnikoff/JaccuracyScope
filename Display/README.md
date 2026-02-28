@@ -9,7 +9,7 @@ The Display module implements a real-time ballistic scope overlay system for the
 All major subsystems run as daemon threads to maximize throughput on the Pi's limited CPU:
 
 - **CamThreader**: Captures frames from Pi Camera via picamera2. Provides thread-safe frame access via `get_frame()` and FPS via `get_fps()`.
-- **SensorThreader** (`SensorThreaderSlowerRotaryEncodersTRY.py`): Reads IMU (ISM330DHCX) + magnetometer (MMC5983MA) + rotary encoders via I2C/SPI. Provides orientation, compass heading, and encoder positions via thread-safe getters.
+- **SensorThreader**: Reads IMU (ISM330DHCX) + magnetometer (MMC5983MA) + rotary encoders via I2C/SPI. Provides orientation, compass heading, and encoder positions via thread-safe getters.
 - **BallisticThreader**: Solves bullet trajectory via the GNU Ballistics C library (ctypes FFI). Provides solution, plot data, and FPS via `get_output()`.
 - **DisplayThreader**: Drives the ST7789 240x240 SPI LCD display.
 - **DataPlotter**: Renders trajectory plots as PIL images for HUD overlay.

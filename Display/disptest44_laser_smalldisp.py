@@ -24,30 +24,21 @@ import math
 
 import io 
 
-import CamThreader 
+from BallisticThreader import BallisticThread, clamp
+from CamThreader import CamThread
+from SensorThreader import SensorThread
 
-import SensorThreaderSlowerRotaryEncodersTRY as SensorThreader 
+bt = BallisticThread(enable_printer=True, enable_laser=True, laser_precision=1)
+bt.daemon = True
+bt.start()
 
-import BallisticThreader4PrinterAndLaser as BallisticThreader
+cam = CamThread(fps_mode='fast')
+cam.daemon = True
+cam.start()
 
-VALID_RANGES = {
-    'caliber': (0.17, 1.0),
-    'bullet_weight_grain': (10, 1000),
-    'bc7_box': (0.01, 1.5),
-    'fps_box': (100, 5000),
-    'Atm_altitude': (-1000, 50000),
-    'Atm_pressure': (20.0, 35.0),
-    'Atm_temperature': (-60, 140),
-    'Atm_RelHumidity': (0.0, 1.0),
-    'zerodistance': (10, 2000),
-    'windspeed': (0, 100),
-}
-
-
-def clamp(value, key):
-    lo, hi = VALID_RANGES[key]
-    return max(lo, min(hi, value))
-
+sensor = SensorThread()
+sensor.daemon = True
+sensor.start()
 
 import RPi.GPIO as GPIO 
 
@@ -178,21 +169,21 @@ if cfg is None:
     cfg = migrate_from_npy()
 if cfg is None:
     cfg = ScopeConfig()
-BallisticThreader.thread.caliber = clamp(cfg.caliber, "caliber")
-BallisticThreader.thread.bullet_weight_grain = int(clamp(cfg.bullet_weight_grain, "bullet_weight_grain"))
-BallisticThreader.thread.Gsolver = cfg.g_model
-BallisticThreader.thread.bc7_box = clamp(cfg.bc, "bc7_box")
-BallisticThreader.thread.zerodistance = cfg.zero_distance
-BallisticThreader.thread.fps_box = int(clamp(cfg.muzzle_velocity, "fps_box"))
-BallisticThreader.thread.windspeed = clamp(cfg.wind_speed, "windspeed")
-BallisticThreader.thread.wind_head_deg = cfg.wind_direction
-BallisticThreader.thread.Atm_altitude = clamp(cfg.altitude, "Atm_altitude")
-BallisticThreader.thread.Atm_pressure = clamp(cfg.pressure, "Atm_pressure")
-BallisticThreader.thread.Atm_temperature = clamp(cfg.temperature, "Atm_temperature")
-BallisticThreader.thread.Atm_RelHumidity = clamp(cfg.humidity, "Atm_RelHumidity")
+bt.caliber = clamp(cfg.caliber, "caliber")
+bt.bullet_weight_grain = int(clamp(cfg.bullet_weight_grain, "bullet_weight_grain"))
+bt.Gsolver = cfg.g_model
+bt.bc7_box = clamp(cfg.bc, "bc7_box")
+bt.zerodistance = cfg.zero_distance
+bt.fps_box = int(clamp(cfg.muzzle_velocity, "fps_box"))
+bt.windspeed = clamp(cfg.wind_speed, "windspeed")
+bt.wind_head_deg = cfg.wind_direction
+bt.Atm_altitude = clamp(cfg.altitude, "Atm_altitude")
+bt.Atm_pressure = clamp(cfg.pressure, "Atm_pressure")
+bt.Atm_temperature = clamp(cfg.temperature, "Atm_temperature")
+bt.Atm_RelHumidity = clamp(cfg.humidity, "Atm_RelHumidity")
 focallength = cfg.focal_length
 
-BallisticThreader.thread.ResolveAngle = True
+bt.ResolveAngle = True
 
 
 
@@ -252,7 +243,7 @@ distance = 500
 inc= 1
 pos = 270
 
-fpsCAM  = CamThreader.thread.get_fps()
+fpsCAM  = cam.get_fps()
 fpsavefr= 0 
    
 
@@ -260,8 +251,8 @@ fpsavefr= 0
 looper= True
 
 ChooseSolver = "GNUsolver"  #"Jacksolver"   or "GNUsolver" 
-BallisticThreader.thread.solver = ChooseSolver
-#BallisticThreader.thread.solver = "GNUsolver"
+bt.solver = ChooseSolver
+#bt.solver = "GNUsolver"
 
 
 #variables needed for impact Preview box and smoothing 
@@ -276,7 +267,7 @@ dropcounter = 0
 
 
 #starting Zoom of camera 
-CamThreader.thread.zoom = 1.0 # 1.0
+cam.zoom = 1.0 # 1.0
 zoomtest = False  #was false
 zoomtester = 0
 zoomincrease = 1 
@@ -334,8 +325,8 @@ debouncer2 = 0
 
 
 
-CamThreader.thread.clicky   = int(scopeyoffset  * opticres)
-CamThreader.thread.clicky   = int(scopeyoffset  * opticres) 
+cam.clicky   = int(scopeyoffset  * opticres)
+cam.clicky   = int(scopeyoffset  * opticres) 
 
 
 printNow = False 
@@ -405,10 +396,10 @@ def main():
             
             
             #From Sensor Thread, Always updating in backgorund 
-            pitch, roll, lead, wobbleX, wobbleY = SensorThreader.thread.get_orientation()
-            head = SensorThreader.thread.get_compass()
+            pitch, roll, lead, wobbleX, wobbleY = sensor.get_orientation()
+            head = sensor.get_compass()
             pitch = -pitch - (4.3 / 57.2957795)
-            fpsSensor  = SensorThreader.thread.get_fps()
+            fpsSensor  = sensor.get_fps()
             pitch_d = pitch * 57.2957795
             
             if (changeOpitcs ==1 ):
@@ -418,54 +409,54 @@ def main():
             
             
             if ( Scope_mode == 0):   #0 is regular scope #1 is LOBSTER mode 
-                BallisticThreader.thread.ScopeMode =0
-                BallisticThreader.thread.dt = 0.05
-                BallisticThreader.thread.T = 3
+                bt.ScopeMode =0
+                bt.dt = 0.05
+                bt.T = 3
             
             
             
-                pasteimage4 = CamThreader.thread.get_frame() # get new frame from thread 
-                fpsCAM  = CamThreader.thread.get_fps()  #grab the output 
+                pasteimage4 = cam.get_frame() # get new frame from thread 
+                fpsCAM  = cam.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 pasteimage4=pasteimage4.resize((240,180),resample=Image.NEAREST) #BIG FPS nearest is fast 
                 
                 
                 ##################### Rotary Encoder INPUTS    ################################################
-                enc1, enc2 = SensorThreader.thread.get_encoders()
+                enc1, enc2 = sensor.get_encoders()
 
                 #Encoder 1 Algorithm (Adjustments when zoomed)
-                if (CamThreader.thread.zoom < (1/2.0)):
+                if (cam.zoom < (1/2.0)):
                     #adjust the Elevation
                     if (enc1 !=  0 ):
                         inputYShift = inputYShift + (enc1)
-                        SensorThreader.thread.consume_encoder1()
+                        sensor.consume_encoder1()
                     #adjust Wind 
                     if(encoder2Mode == "Wind"): 
                         if (enc2 !=  0 ):
                             inputXShift = inputXShift + (enc2)
-                            SensorThreader.thread.consume_encoder2()      
+                            sensor.consume_encoder2()      
                         
                     
-                    if (SensorThreader.thread.enc1_button_held == True and debounce1 == False):
+                    if (sensor.enc1_button_held == True and debounce1 == False):
                         print("Snapping Outward! ")
-                        CamThreader.thread.zoom = 1.0
+                        cam.zoom = 1.0
                         inputXShift = 0
                         inputYShift = 0 
                         debounce1 = True
                         
                         
-                elif (CamThreader.thread.zoom == 1.0 and debounce1 == False):
+                elif (cam.zoom == 1.0 and debounce1 == False):
                     if (enc1 !=  0 ):
                         newdist = distance + (enc1 * 25)
                         if(newdist < 25):
                             distance=25
-                            SensorThreader.thread.consume_encoder1()
+                            sensor.consume_encoder1()
                         else: 
                             distance = newdist
-                            SensorThreader.thread.consume_encoder1()                
-                    if (SensorThreader.thread.enc1_button_held == True):
+                            sensor.consume_encoder1()                
+                    if (sensor.enc1_button_held == True):
                         print("Snapping Inward! ")
-                        CamThreader.thread.zoom = 0.125
+                        cam.zoom = 0.125
                         inputXShift = int(-windmoa)
                         inputYShift = int(-dropmoa)
                         debounce1 = True 
@@ -473,19 +464,19 @@ def main():
                 if (encoder2Mode == "Zoom"): 
                     #zoom the camera in on encoder 2 inputs...
                     if (enc2 !=  0 ):
-                        newzoom = CamThreader.thread.zoom/(pow(1.1,enc2)) 
+                        newzoom = cam.zoom/(pow(1.1,enc2)) 
                         print ("new zoom is: " + str(newzoom))
                         if (newzoom > 1.0):
-                            CamThreader.thread.zoom = 1.0
+                            cam.zoom = 1.0
                         elif (newzoom < 0.0625):
-                            CamThreader.thread.zoom = 0.0625
+                            cam.zoom = 0.0625
                         else: 
-                            CamThreader.thread.zoom = newzoom
-                        SensorThreader.thread.consume_encoder2()    
+                            cam.zoom = newzoom
+                        sensor.consume_encoder2()    
                             
                         
                         
-                if (SensorThreader.thread.enc2_button_held == True and debounce2 == False):
+                if (sensor.enc2_button_held == True and debounce2 == False):
                     if(encoder2Mode == "Wind"): 
                         encoder2Mode = "Zoom"
                         print("Changed ENC2 to Zoom Mode")
@@ -513,27 +504,27 @@ def main():
                 
                 
                 #correct the approximate math 
-                if (CamThreader.thread.zoom > (1/2.0)): #2.9
+                if (cam.zoom > (1/2.0)): #2.9
                     scopexoffset = 0   #angle right 20  MOA 
                     scopeyoffset = 0 #angle up 40 MOA 
-                    CamThreader.thread.clickx   = int(scopexoffset  * opticPercent* 3040)     #for Mode 1 camera 1080 or 2028  3040for mode 2
-                    CamThreader.thread.clicky   = int(scopeyoffset  * opticPercent* 3040)               
+                    cam.clickx   = int(scopexoffset  * opticPercent* 3040)     #for Mode 1 camera 1080 or 2028  3040for mode 2
+                    cam.clicky   = int(scopeyoffset  * opticPercent* 3040)               
                 else: 
                     scopexoffset = inputXShift  #angle right 20  MOA 
                     scopeyoffset = inputYShift                  #angle up 40 MOA 
-                    CamThreader.thread.clickx   = int(scopexoffset  * opticPercent* 3040)
-                    CamThreader.thread.clicky   = int(scopeyoffset  * opticPercent * 3040)
-                    #print(CamThreader.thread.clicky)
+                    cam.clickx   = int(scopexoffset  * opticPercent* 3040)
+                    cam.clicky   = int(scopeyoffset  * opticPercent * 3040)
+                    #print(cam.clicky)
                     
                     
                     
                 #If detected new laser results are in .... 
                 
-                if(BallisticThreader.thread.newLaserDistance == True):
-                    tdistance = BallisticThreader.thread.distancelaser 
+                if(bt.newLaserDistance == True):
+                    tdistance = bt.distancelaser 
                     if (tdistance > 24 ):
                         distance = tdistance
-                        BallisticThreader.thread.newLaserDistance = False 
+                        bt.newLaserDistance = False 
                 
                 
                 
@@ -547,22 +538,22 @@ def main():
                         zoomtester = 0
                         
                         if (zoomincrease == 1):
-                            CamThreader.thread.zoom = CamThreader.thread.zoom/1.01  #/2
+                            cam.zoom = cam.zoom/1.01  #/2
                             #scopexoffset = (scopexoffset + .125) 
                         # scopeyoffset = (scopeyoffset + (.1)) 
-                            #CamThreader.thread.clickx   = int(scopexoffset  * 14)
-                            #CamThreader.thread.clicky   = int(scopeyoffset  * 14)
+                            #cam.clickx   = int(scopexoffset  * 14)
+                            #cam.clicky   = int(scopeyoffset  * 14)
                             
-                            if (CamThreader.thread.zoom < (0.0626)):   
+                            if (cam.zoom < (0.0626)):   
                                 zoomincrease = 0 
                                         
                         else: 
-                            CamThreader.thread.zoom = CamThreader.thread.zoom*1.01 #*2
+                            cam.zoom = cam.zoom*1.01 #*2
                             #scopexoffset = (scopexoffset -.125) 
                             #scopeyoffset = (scopeyoffset - (.1) ) 
-                            #CamThreader.thread.clickx   = int(scopexoffset * 14)
-                            #CamThreader.thread.clicky   = int(scopeyoffset  * 14)
-                            if (CamThreader.thread.zoom > (0.90)):
+                            #cam.clickx   = int(scopexoffset * 14)
+                            #cam.clicky   = int(scopeyoffset  * 14)
+                            if (cam.zoom > (0.90)):
                                 zoomincrease = 1             
                         
                     
@@ -583,14 +574,14 @@ def main():
                 
                 
                 #From Sensor Thread, Always updating in backgorund 
-                #head = SensorThreader.thread.output_heading
-                #pitch = -SensorThreader.thread.pitch #- 0.01308997
-                #roll = SensorThreader.thread.roll
-                #fpsSensor  = SensorThreader.thread.get_fps()
+                #head = sensor.output_heading
+                #pitch = -sensor.pitch #- 0.01308997
+                #roll = sensor.roll
+                #fpsSensor  = sensor.get_fps()
                 
                 # wobbleY, wobbleX from get_orientation above
                 wobble_radius = (math.sqrt((wobbleY*wobbleY)+(wobbleX*wobbleX))) + 2  
-                sight_angle = ( BallisticThreader.thread.gunSightangle * math.pi/180)#rads 
+                sight_angle = ( bt.gunSightangle * math.pi/180)#rads 
                 
                 
                 vstart= 2600*0.3048 #mps   #input 2600 from settings somewhere... with space.. 
@@ -605,24 +596,24 @@ def main():
                 pos = head
                 
                 #Standard input vals to the ballthreader 
-                BallisticThreader.thread.x0in = 0.0
-                BallisticThreader.thread.y0in = startheight
-                BallisticThreader.thread.Vx0in = Vx0x
-                BallisticThreader.thread.Vy0in = Vy0y
-                BallisticThreader.thread.targetdistin =  distance_m
+                bt.x0in = 0.0
+                bt.y0in = startheight
+                bt.Vx0in = Vx0x
+                bt.Vy0in = Vy0y
+                bt.targetdistin =  distance_m
                 
-                if (BallisticThreader.thread.solver == "GNUsolver"):
-                    BallisticThreader.thread.elevation0in = pitch_d
+                if (bt.solver == "GNUsolver"):
+                    bt.elevation0in = pitch_d
                 else: 
-                    BallisticThreader.thread.elevation0in = pitch
+                    bt.elevation0in = pitch
                 
                 
                         #Wind Inputs for Solution 
-                BallisticThreader.thread.facing = head  
+                bt.facing = head  
 
                 
                 
-                solution, plot, fpsBalls, _maxh = BallisticThreader.thread.get_output()
+                solution, plot, fpsBalls, _maxh = bt.get_output()
                 
                 timeOfFlight =  solution[5]
             
@@ -635,18 +626,18 @@ def main():
                 #REsults
                 hit = ((solution[1] - math.sin(pitch - pitch_fake)*distance))
                 
-                if (BallisticThreader.thread.solver == "GNUsolver"):
+                if (bt.solver == "GNUsolver"):
                     dropmoa = solution[6]
                     #dropmoa = -40
                 else: 
                 
                     #print(solution)
-                    dropmoa = (-pitch + math.atan((solution[1]-((BallisticThreader.thread.scope_height*0.0254)+startheight))/solution[0]))*(180 / math.pi ) *60 - (BallisticThreader.thread.gunSightangle*60) #Needs looked at, scope height
-                    #dropmoa   = ((solution[1] - startheight-(BallisticThreader.thread.scope_height*0.0254))*39.3701) / ((solution[0]/91.44) * 1.047) #works????????? idk lol 
-                    #dropmoa = ((solution[1]-startheight)*39) * 91.44 / (solution[0] * 1.047) - (BallisticThreader.thread.gunSightangle*60)
+                    dropmoa = (-pitch + math.atan((solution[1]-((bt.scope_height*0.0254)+startheight))/solution[0]))*(180 / math.pi ) *60 - (bt.gunSightangle*60) #Needs looked at, scope height
+                    #dropmoa   = ((solution[1] - startheight-(bt.scope_height*0.0254))*39.3701) / ((solution[0]/91.44) * 1.047) #works????????? idk lol 
+                    #dropmoa = ((solution[1]-startheight)*39) * 91.44 / (solution[0] * 1.047) - (bt.gunSightangle*60)
                     
                 ##print(dropmoa);
-                if (BallisticThreader.thread.solver == "GNUsolver"):
+                if (bt.solver == "GNUsolver"):
                     windmoa = solution[4]
                     #windmoa = -20
                 else: 
@@ -669,7 +660,7 @@ def main():
     
                 
                 #Apply scaling of camera to droppixels 
-                scaling = CamThreader.thread.zoom
+                scaling = cam.zoom
                 
             
                 
@@ -743,7 +734,7 @@ def main():
                 windbox_w = 78
                 Yoffset = 8
                 #replaced Wind with CPUtemp... put back to wind later...(mph)
-                MESSAGE = "Wind: " + str("{:2.1f}".format(BallisticThreader.thread.windspeed)) + " mph"  + "\n Dir: " + str("{:.1f}".format(BallisticThreader.thread.wind_head_deg))  + " deg"
+                MESSAGE = "Wind: " + str("{:2.1f}".format(bt.windspeed)) + " mph"  + "\n Dir: " + str("{:.1f}".format(bt.wind_head_deg))  + " deg"
                 
                 draw.rectangle((239-windbox_w, Yoffset, 239, Yoffset+windbox_h), (0, 0, 0))  #disp.width, disp.heigh
                 draw.text((239-windbox_w+10,Yoffset), MESSAGE, spacing = 1, font=font, fill=(255, 255, 255))
@@ -751,8 +742,8 @@ def main():
                 
                 #######DrawZoomLevel
                 
-                #thezoom = int(1/CamThreader.thread.zoom)
-                MESSAGE = str("{:.1f}".format(1/CamThreader.thread.zoom)) + "x" 
+                #thezoom = int(1/cam.zoom)
+                MESSAGE = str("{:.1f}".format(1/cam.zoom)) + "x" 
                 draw.text((2,180), MESSAGE, spacing = 1, font=fontL, fill=(255, 255, 255))
                 
                 
@@ -875,7 +866,7 @@ def main():
                 draw.line([((119 + impactzoneX - 3 ) ,  (119 + impactzoneY + 3 )   ), ( (119 + impactzoneX  + 3 )  , (119 + impactzoneY + 3 )  ) ], flashcolor, width = 1  )
             
                 
-                if (BallisticThreader.thread.printerGO == True):
+                if (bt.printerGO == True):
                     draw.rectangle((69, 69, 169, 169), (0, 0, 255))
                     MESSAGE = " PRINTING .... "
                     draw.text((92,int(110+(pitch_d*1.5))), MESSAGE, font=fontL, spacing = 1, fill=(255, 255, 255)) #int(text_x), int(text_y)  
@@ -940,7 +931,7 @@ def main():
                 
                 ### draw LASERING 
                 
-                if (BallisticThreader.thread.Lasering == True): 
+                if (bt.Lasering == True): 
                     MESSAGE = "LASERING..." 
                     draw.text((150,42), MESSAGE, spacing = 1, font=fontL, fill=(255, 10, 10))
                     
@@ -977,9 +968,9 @@ def main():
             
             
             elif (Scope_mode == 1):   #LOBSTER MODE 
-                BallisticThreader.thread.ScopeMode =1    #Scope_mode
-                BallisticThreader.thread.dt = 2
-                BallisticThreader.thread.T = 60
+                bt.ScopeMode =1    #Scope_mode
+                bt.dt = 2
+                bt.T = 60
                 
                 img.paste(image_lob,(0,0))
                 
@@ -1000,14 +991,14 @@ def main():
                 
                 
                 #From Sensor Thread, Always updating in backgorund 
-                #head = SensorThreader.thread.output_heading
-                #pitch = -SensorThreader.thread.pitch
-                #roll = SensorThreader.thread.roll
-                #fpsSensor  = SensorThreader.thread.get_fps()
+                #head = sensor.output_heading
+                #pitch = -sensor.pitch
+                #roll = sensor.roll
+                #fpsSensor  = sensor.get_fps()
                 
                 # wobbleY, wobbleX from get_orientation above
                 wobble_radius = (math.sqrt((wobbleY*wobbleY)+(wobbleX*wobbleX))) + 2  
-                sight_angle = (BallisticThreader.thread.gunSightangle * math.pi/180)#rads 
+                sight_angle = (bt.gunSightangle * math.pi/180)#rads 
                 
                 
                 vstart= 2600*0.3048 #mps   #input 2600 from settings somewhere... with space.. 
@@ -1020,20 +1011,20 @@ def main():
                 pos = head
                 
                 #Standard input vals to the ballthreader 
-                BallisticThreader.thread.x0in = 0.0
-                BallisticThreader.thread.y0in = startheight
-                BallisticThreader.thread.Vx0in = Vx0x
-                BallisticThreader.thread.Vy0in = Vy0y
-                BallisticThreader.thread.targetdistin =  2500 * 0.9144
-                BallisticThreader.thread.elevation0in = pitch
+                bt.x0in = 0.0
+                bt.y0in = startheight
+                bt.Vx0in = Vx0x
+                bt.Vy0in = Vy0y
+                bt.targetdistin =  2500 * 0.9144
+                bt.elevation0in = pitch
                 
                         #Wind Inputs for Solution 
-                BallisticThreader.thread.facing = head  
-                BallisticThreader.thread.windspeed = 0
-                BallisticThreader.thread.wind_head_deg = 0
+                bt.facing = head  
+                bt.windspeed = 0
+                bt.wind_head_deg = 0
                 
                 
-                solutionLob, plotLob, fpsBalls, _maxh = BallisticThreader.thread.get_output()            
+                solutionLob, plotLob, fpsBalls, _maxh = bt.get_output()            
                 
                 
                 ####Draw the Plot at bottom using Paste Function 
@@ -1091,20 +1082,20 @@ def main():
                 
             elif(Scope_mode == 2):  #settings menu 
                 settingAdjustNumber = 0.000
-                BallisticThreader.thread.ScopeMode =2  #not use ballistics in background when settings 
-                BallisticThreader.thread.dt = 1
-                BallisticThreader.thread.T = 2
-                fpsBalls = BallisticThreader.thread.get_output()[2]
+                bt.ScopeMode =2  #not use ballistics in background when settings 
+                bt.dt = 1
+                bt.T = 2
+                fpsBalls = bt.get_output()[2]
             
             
                 img.paste(image_settings,(0,0))
 
                 # Read the Rotary Encoders for the Menu Input
-                enc1, enc2 = SensorThreader.thread.get_encoders()
+                enc1, enc2 = sensor.get_encoders()
 
                 if (enc1 !=  0 ):
                     menuNumber = menuNumber + (enc1)
-                    SensorThreader.thread.consume_encoder1()
+                    sensor.consume_encoder1()
                 
                 if (menuNumber > 11):
                     menuNumber = 0
@@ -1117,41 +1108,41 @@ def main():
                 if (enc2 !=  0 ):
                     if (menuNumber == 0):
                         settingAdjustNumber = enc2 * 0
-                        SensorThreader.thread.consume_encoder2()
+                        sensor.consume_encoder2()
                     elif (menuNumber == 1):
                         settingAdjustNumber = enc2 * 0.001
-                        BallisticThreader.thread.caliber = clamp(
-                            BallisticThreader.thread.caliber + settingAdjustNumber, 'caliber'
+                        bt.caliber = clamp(
+                            bt.caliber + settingAdjustNumber, 'caliber'
                         )
-                        SensorThreader.thread.consume_encoder2()                       
+                        sensor.consume_encoder2()                       
                     elif (menuNumber == 2):
                         settingAdjustNumber = enc2 * 1
-                        BallisticThreader.thread.bullet_weight_grain = int(clamp(
-                            BallisticThreader.thread.bullet_weight_grain + settingAdjustNumber,
+                        bt.bullet_weight_grain = int(clamp(
+                            bt.bullet_weight_grain + settingAdjustNumber,
                             'bullet_weight_grain',
                         ))
-                        SensorThreader.thread.consume_encoder2()      
+                        sensor.consume_encoder2()      
                     elif (menuNumber == 3):
                         settingAdjustNumber = enc2 * 1
                         
                         if (enc2 > 0):
-                            BallisticThreader.thread.Gsolver = 7
+                            bt.Gsolver = 7
                         elif (enc2 < 0):
-                            BallisticThreader.thread.Gsolver = 1
-                        SensorThreader.thread.consume_encoder2()                          
+                            bt.Gsolver = 1
+                        sensor.consume_encoder2()                          
                     elif (menuNumber == 4):
                         settingAdjustNumber = enc2 * 0.001
-                        BallisticThreader.thread.bc7_box = clamp(
-                            BallisticThreader.thread.bc7_box + settingAdjustNumber, 'bc7_box'
+                        bt.bc7_box = clamp(
+                            bt.bc7_box + settingAdjustNumber, 'bc7_box'
                         )
-                        SensorThreader.thread.consume_encoder2()   
+                        sensor.consume_encoder2()   
                     elif (menuNumber == 5):
                         settingAdjustNumber = enc2 * 25
-                        BallisticThreader.thread.zerodistance = int(clamp(
-                            BallisticThreader.thread.zerodistance + settingAdjustNumber,
+                        bt.zerodistance = int(clamp(
+                            bt.zerodistance + settingAdjustNumber,
                             'zerodistance',
                         ))
-                        SensorThreader.thread.consume_encoder2()                          
+                        sensor.consume_encoder2()                          
                     #elif (menuNumber == 6):
                     #    settingAdjustNumber = enc2 * 1
                     #    if (enc2 > 0):
@@ -1160,32 +1151,32 @@ def main():
                     #    elif (enc2 < 0):
                     #        drawsubhashes = False
                     #        drawsubsubs  = False
-                    #    SensorThreader.thread.consume_encoder2()                              
+                    #    sensor.consume_encoder2()                              
                     elif (menuNumber == 6):
                         settingAdjustNumber = enc2 * 5
-                        BallisticThreader.thread.fps_box = int(clamp(
-                            BallisticThreader.thread.fps_box + settingAdjustNumber, 'fps_box'
+                        bt.fps_box = int(clamp(
+                            bt.fps_box + settingAdjustNumber, 'fps_box'
                         ))
-                        SensorThreader.thread.consume_encoder2()    
+                        sensor.consume_encoder2()    
                     elif (menuNumber == 7):
                         settingAdjustNumber = enc2 * 0.1
-                        windspeederrr = BallisticThreader.thread.windspeed + settingAdjustNumber
-                        BallisticThreader.thread.windspeed = clamp(windspeederrr, 'windspeed') 
-                        SensorThreader.thread.consume_encoder2()                          
+                        windspeederrr = bt.windspeed + settingAdjustNumber
+                        bt.windspeed = clamp(windspeederrr, 'windspeed') 
+                        sensor.consume_encoder2()                          
                     elif (menuNumber == 8):
                         settingAdjustNumber = enc2 * 5
-                        winder= BallisticThreader.thread.wind_head_deg
+                        winder= bt.wind_head_deg
                         winder += settingAdjustNumber
                         if (winder > 360):
                             winder -= 360
                         elif (winder < 0):
                             winder += 360  
-                        BallisticThreader.thread.wind_head_deg = winder        
-                        SensorThreader.thread.consume_encoder2()    
+                        bt.wind_head_deg = winder        
+                        sensor.consume_encoder2()    
                     elif (menuNumber == 11):
                         if (enc2 > 0):
                             Scope_mode = 3 #start the FF adjust 
-                        SensorThreader.thread.consume_encoder2()                           
+                        sensor.consume_encoder2()                           
 
                 
                 
@@ -1198,37 +1189,37 @@ def main():
                 
                 #Draw current settings 
                 #cailber
-                MESSAGE = str("{:.3f}".format(BallisticThreader.thread.caliber))        
+                MESSAGE = str("{:.3f}".format(bt.caliber))        
                 draw.text((136, yposition[0]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
                 
                 #weight
-                MESSAGE = str(int(BallisticThreader.thread.bullet_weight_grain)  )    
+                MESSAGE = str(int(bt.bullet_weight_grain)  )    
                 draw.text((136, yposition[1]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
     
                 #G model  
-                if (BallisticThreader.thread.Gsolver == 1):
+                if (bt.Gsolver == 1):
                     draw.rectangle((148, yposition[2]-3, 148+25, yposition[2]+17), outline = (255, 255, 255))            
-                elif (BallisticThreader.thread.Gsolver == 7):
+                elif (bt.Gsolver == 7):
                     draw.rectangle((180, yposition[2]-3, 180+25, yposition[2]+17), outline = (255, 255, 255)) 
     
     
                 #BC      
-                MESSAGE = str("{:.3f}".format(BallisticThreader.thread.bc7_box))        
+                MESSAGE = str("{:.3f}".format(bt.bc7_box))        
                 draw.text((136, yposition[3]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
     
                 #Zero Distance       
-                MESSAGE = str(int(BallisticThreader.thread.zerodistance))        
+                MESSAGE = str(int(bt.zerodistance))        
                 draw.text((136, yposition[4]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
                             
                 #Velocity    
-                MESSAGE = str("{:.1f}".format(BallisticThreader.thread.fps_box))      
+                MESSAGE = str("{:.1f}".format(bt.fps_box))      
                 draw.text((136, yposition[5]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
             
                 #Wind  
-                MESSAGE = str("{:.1f}".format(BallisticThreader.thread.windspeed))    
+                MESSAGE = str("{:.1f}".format(bt.windspeed))    
                 draw.text((136, yposition[6]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
                 #Wind direction  
-                MESSAGE = str(int(BallisticThreader.thread.wind_head_deg)) + " d"    
+                MESSAGE = str(int(bt.wind_head_deg)) + " d"    
                 draw.text((190, yposition[6]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
              
                 
@@ -1277,8 +1268,8 @@ def main():
             
             elif(Scope_mode == 3):  #Focal Length Calibration :) 
 
-                pasteimage4 = CamThreader.thread.get_frame() # get new frame from thread 
-                fpsCAM  = CamThreader.thread.get_fps()  #grab the output 
+                pasteimage4 = cam.get_frame() # get new frame from thread 
+                fpsCAM  = cam.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 pasteimage4=pasteimage4.resize((240,180),resample=Image.NEAREST) #BIG FPS nearest is fast  
  
@@ -1292,28 +1283,28 @@ def main():
                 
                 #######DrawZoomLevel
                 
-                #thezoom = int(1/CamThreader.thread.zoom)
-                MESSAGE = str("{:.1f}".format(1/CamThreader.thread.zoom)) + "x" 
+                #thezoom = int(1/cam.zoom)
+                MESSAGE = str("{:.1f}".format(1/cam.zoom)) + "x" 
                 draw.text((2,180), MESSAGE, spacing = 1, font=fontL, fill=(255, 255, 255))
 
                 #Roatry Encoder
-                enc1, enc2 = SensorThreader.thread.get_encoders()
+                enc1, enc2 = sensor.get_encoders()
 
                 ###### Focal Length LEVEL ADJUST
                 if (enc1 !=  0 ):
                     changeOpitcs = 1
                     focallength = focallength + ((enc1)/4)
-                    SensorThreader.thread.consume_encoder1()
+                    sensor.consume_encoder1()
                  #######ZOOM LEVEL ADJUST    
                 if (enc2 !=  0 ):
-                    newzoom = CamThreader.thread.zoom/(pow(2,enc2)) 
+                    newzoom = cam.zoom/(pow(2,enc2)) 
                     if (newzoom > 1.0):
-                        CamThreader.thread.zoom = 1.0
+                        cam.zoom = 1.0
                     elif (newzoom < 0.0625):
-                        CamThreader.thread.zoom = 0.0625
+                        cam.zoom = 0.0625
                     else: 
-                        CamThreader.thread.zoom = newzoom
-                    SensorThreader.thread.consume_encoder2()        
+                        cam.zoom = newzoom
+                    sensor.consume_encoder2()        
                 
                 if (changeOpitcs == 1 ):
                     opticres = 1 / ((math.atan(0.00155 / focallength)*57.295779513)*60)
@@ -1347,7 +1338,7 @@ def main():
                 
                 
                 oneMoaScreen = opticres
-                scaling = CamThreader.thread.zoom
+                scaling = cam.zoom
             
                 
                 subhashcolor= (0,255,0)
@@ -1393,20 +1384,20 @@ def main():
 
             elif(Scope_mode == 4):  #settings menu 
                 settingAdjustNumber = 0.000
-                BallisticThreader.thread.ScopeMode =2  #not use ballistics in background when settings 
-                BallisticThreader.thread.dt = 1
-                BallisticThreader.thread.T = 2
-                fpsBalls = BallisticThreader.thread.get_output()[2]
+                bt.ScopeMode =2  #not use ballistics in background when settings 
+                bt.dt = 1
+                bt.T = 2
+                fpsBalls = bt.get_output()[2]
             
             
                 img.paste(image_settingsP2,(0,0))
 
                 # Read the Rotary Encoders for the Menu Input
-                enc1, enc2 = SensorThreader.thread.get_encoders()
+                enc1, enc2 = sensor.get_encoders()
 
                 if (enc1 !=  0 ):
                     menuNumber = menuNumber + (enc1)
-                    SensorThreader.thread.consume_encoder1()
+                    sensor.consume_encoder1()
                 
                 if (menuNumber > 6):
                     menuNumber = 6
@@ -1418,44 +1409,44 @@ def main():
                 if (enc2 !=  0 ):
                     if (menuNumber == 0):
                         settingAdjustNumber = enc2 * 0
-                        SensorThreader.thread.consume_encoder2()
+                        sensor.consume_encoder2()
                     elif (menuNumber == 1):
                         settingAdjustNumber = enc2 * 50
-                        BallisticThreader.thread.Atm_altitude = clamp(
-                            BallisticThreader.thread.Atm_altitude + settingAdjustNumber,
+                        bt.Atm_altitude = clamp(
+                            bt.Atm_altitude + settingAdjustNumber,
                             'Atm_altitude',
                         )
-                        SensorThreader.thread.consume_encoder2()                       
+                        sensor.consume_encoder2()                       
                     elif (menuNumber == 2):
                         settingAdjustNumber = enc2 * 0.25
-                        BallisticThreader.thread.Atm_pressure = clamp(
-                            BallisticThreader.thread.Atm_pressure + settingAdjustNumber,
+                        bt.Atm_pressure = clamp(
+                            bt.Atm_pressure + settingAdjustNumber,
                             'Atm_pressure',
                         )
-                        SensorThreader.thread.consume_encoder2()      
+                        sensor.consume_encoder2()      
                     elif (menuNumber == 3):
                         settingAdjustNumber = enc2 * 1
-                        BallisticThreader.thread.Atm_temperature = clamp(
-                            BallisticThreader.thread.Atm_temperature + settingAdjustNumber,
+                        bt.Atm_temperature = clamp(
+                            bt.Atm_temperature + settingAdjustNumber,
                             'Atm_temperature',
                         )
-                        SensorThreader.thread.consume_encoder2()    
+                        sensor.consume_encoder2()    
                          
                     elif (menuNumber == 4):
                         settingAdjustNumber = enc2 * 0.01
-                        BallisticThreader.thread.Atm_RelHumidity = clamp(
-                            BallisticThreader.thread.Atm_RelHumidity + settingAdjustNumber,
+                        bt.Atm_RelHumidity = clamp(
+                            bt.Atm_RelHumidity + settingAdjustNumber,
                             'Atm_RelHumidity',
                         )
-                        SensorThreader.thread.consume_encoder2()   
+                        sensor.consume_encoder2()   
                     elif (menuNumber == 5): #latitude 
                         settingAdjustNumber = enc2 * 1
-                        #BallisticThreader.thread.zerodistance += settingAdjustNumber
-                        SensorThreader.thread.consume_encoder2()                                                      
+                        #bt.zerodistance += settingAdjustNumber
+                        sensor.consume_encoder2()                                                      
                     elif (menuNumber == 6): #longitude 
                         settingAdjustNumber = enc2 * 1
-                        #BallisticThreader.thread.fps_box += settingAdjustNumber
-                        SensorThreader.thread.consume_encoder2()    
+                        #bt.fps_box += settingAdjustNumber
+                        sensor.consume_encoder2()    
    
 
                 
@@ -1469,27 +1460,27 @@ def main():
                 
                 #Draw current settings 
                 #Altitude
-                MESSAGE = str("{:.3f}".format(BallisticThreader.thread.Atm_altitude / 1000))      
+                MESSAGE = str("{:.3f}".format(bt.Atm_altitude / 1000))      
                 draw.text((136, yposition[0]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
                 
                 #Pressure
-                MESSAGE = str("{:.2f}".format(BallisticThreader.thread.Atm_pressure)  )    
+                MESSAGE = str("{:.2f}".format(bt.Atm_pressure)  )    
                 draw.text((136, yposition[1]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
     
                 #Temperatre 
-                MESSAGE = str(int(BallisticThreader.thread.Atm_temperature))        
+                MESSAGE = str(int(bt.Atm_temperature))        
                 draw.text((136, yposition[2]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
 
                 #R. Humidity      
-                MESSAGE = str(int(BallisticThreader.thread.Atm_RelHumidity*100)) + "%"       
+                MESSAGE = str(int(bt.Atm_RelHumidity*100)) + "%"       
                 draw.text((136, yposition[3]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
     
                 #Latitude       
-                MESSAGE = str(39.73555)      #str(int(BallisticThreader.thread.zerodistance))        )
+                MESSAGE = str(39.73555)      #str(int(bt.zerodistance))        )
                 draw.text((136, yposition[4]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
                             
                 #Longitude   
-                MESSAGE = str(104.98972) #str("{:.1f}".format(BallisticThreader.thread.fps_box))      
+                MESSAGE = str(104.98972) #str("{:.1f}".format(bt.fps_box))      
                 draw.text((136, yposition[5]), MESSAGE, spacing = 1, font=SettingsFont, fill=(255, 255, 255)) #int(text_x), int(text_y)   
             
                 
@@ -1538,12 +1529,12 @@ def main():
             
             if (Scope_mode != 2):
                 if (Scope_mode == 0 and pitch_d > 40):
-                    BallisticThreader.thread.solver = "Jacksolver"
+                    bt.solver = "Jacksolver"
                     print("Transitioning to LOBSTER")
                     #time.sleep(0.3)
                     Scope_mode = 1 
                 elif (Scope_mode == 1 and pitch_d < 40): 
-                    BallisticThreader.thread.solver = ChooseSolver
+                    bt.solver = ChooseSolver
                     #time.sleep(0.3)
                     print("Leaving LOBSTER")
                     Scope_mode = 0 
@@ -2359,22 +2350,22 @@ def B2_switch_callback(channel):      ##### SETTUNG
     elif(Scope_mode == 3): 
         Scope_mode  = 2
         menuNumber = 0
-        CamThreader.thread.zoom = 1.0
+        cam.zoom = 1.0
     else: 
         #saveConfig
         cfg = ScopeConfig(
-            caliber=BallisticThreader.thread.caliber,
-            bullet_weight_grain=BallisticThreader.thread.bullet_weight_grain,
-            g_model=BallisticThreader.thread.Gsolver,
-            bc=BallisticThreader.thread.bc7_box,
-            zero_distance=BallisticThreader.thread.zerodistance,
-            muzzle_velocity=BallisticThreader.thread.fps_box,
-            wind_speed=BallisticThreader.thread.windspeed,
-            wind_direction=BallisticThreader.thread.wind_head_deg,
-            altitude=BallisticThreader.thread.Atm_altitude,
-            pressure=BallisticThreader.thread.Atm_pressure,
-            temperature=BallisticThreader.thread.Atm_temperature,
-            humidity=BallisticThreader.thread.Atm_RelHumidity,
+            caliber=bt.caliber,
+            bullet_weight_grain=bt.bullet_weight_grain,
+            g_model=bt.Gsolver,
+            bc=bt.bc7_box,
+            zero_distance=bt.zerodistance,
+            muzzle_velocity=bt.fps_box,
+            wind_speed=bt.windspeed,
+            wind_direction=bt.wind_head_deg,
+            altitude=bt.Atm_altitude,
+            pressure=bt.Atm_pressure,
+            temperature=bt.Atm_temperature,
+            humidity=bt.Atm_RelHumidity,
             focal_length=focallength,
         )
         cfg.save()
@@ -2424,38 +2415,38 @@ def LEFT_switch_callback(channel):      ##### SETTUNG
 
 def UP_switch_callback(channel):      ##### Zoom out  UP 
     
-    zommer = CamThreader.thread.zoom *1.05  #+ 0.0625
+    zommer = cam.zoom *1.05  #+ 0.0625
     
     if (zommer > 1.0):
         zommer = 1.0
         
-    CamThreader.thread.zoom = zommer  
+    cam.zoom = zommer  
     
     print('Switch UP pressed')  
-    print("zoom is: " + str(CamThreader.thread.zoom))
+    print("zoom is: " + str(cam.zoom))
     
 def B1_switch_callback(channel):      ##### Zoom in 
 
 
     
  
-    #CamThreader.thread.zoom = CamThreader.thread.zoom  / 1.05  #- 0.0625  
+    #cam.zoom = cam.zoom  / 1.05  #- 0.0625  
     global printNow, LaserOn
     
-    #if (Scope_mode == 0 and BallisticThreader.thread.printerGO == False):
+    #if (Scope_mode == 0 and bt.printerGO == False):
     #    if (printNow == False ):
     #        printNow =True; 
-    #        BallisticThreader.thread.printerGO = printNow
+    #        bt.printerGO = printNow
     #        printNow =False;
     #        print('Button 1 pressed, Printing.')
     #        
     
 
     
-    if (Scope_mode == 0 and BallisticThreader.thread.Lasering == False):
+    if (Scope_mode == 0 and bt.Lasering == False):
         if (LaserOn == False ):
             LaserOn = True 
-            BallisticThreader.thread.Lasering = LaserOn
+            bt.Lasering = LaserOn
             LaserOn = False
             print('Button 1 pressed, Lasering.')        
             

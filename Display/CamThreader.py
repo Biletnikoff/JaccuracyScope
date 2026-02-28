@@ -1,61 +1,67 @@
 """Camera capture thread for Pi Camera via picamera2."""
 
-from picamera2 import Picamera2
+import time
 from threading import Thread, Lock
+
+from picamera2 import Picamera2
+
 import logging
 
 logger = logging.getLogger(__name__)
-import time 
 
 
-class CameraThread(Thread): 
+class CamThread(Thread):
     """Captures frames from the Pi Camera in a background thread.
 
     Provides thread-safe access to the latest frame and FPS measurement.
+    fps_mode: 'fast' (45 FPS, no auto-exposure) or 'slow' (38 FPS, auto-exposure).
     """
 
-    def __init__(self) -> None: 
-    
+    def __init__(self, fps_mode='fast') -> None:
         Thread.__init__(self)
         self._lock = Lock()
+        self.fps_mode = fps_mode
 
         self.val1 = 1
         self.clickx = 0
-        self.clicky = 0 
+        self.clicky = 0
         self.clickxOld = 0
-        self.clickyOld = 0 
-        
-        self.val1 = 1
-        self.zoom = 1.0 
-        self.zoomold = 1.0 
-        
-        #initial Camera Setup! 
-        #instantiate the processes
+        self.clickyOld = 0
+
+        self.zoom = 1.0
+        self.zoomold = 1.0
+
         self.camera = Picamera2()
-        preview_config = self.camera.create_preview_configuration(main = {"size": (240, 180)}, raw = self.camera.sensor_modes[2]) #(240, 180) (480, 360) (620, 480)
-        
-        #sensor Mode 2  = use 3040 as full height 
-        #Sensor mode 1, use 1080 as full height 
-        
-        #print(preview_config)
+        preview_config = self.camera.create_preview_configuration(
+            main={"size": (240, 180)}, raw=self.camera.sensor_modes[2]
+        )
+
         self.camera.configure(preview_config)
-        
+
         print("Starting Camera...")
         self.camera.start()
-        
-        #self.camera.framerate = 30
+
         self.camera.rotation = 90
-        
+
         time.sleep(1)
-        
+
         self.OGsize = self.camera.capture_metadata()['ScalerCrop'][2:]
         self.full_res = self.camera.camera_properties['PixelArraySize']
         self.camera.capture_metadata()
-        
-        #mode zero limits 'crop_limits': (696, 528, 2664, 1980) 
-        size = [int(s * self.zoom) for s in self.OGsize]   #0.0625
-        offset = [(r - s) // 2 for r, s in zip(self.full_res, size)] 
-        self.camera.set_controls({"ScalerCrop": offset + size , "FrameRate": (45), "Sharpness": (16)}) #, "AnalogueGain": 2.0
+
+        size = [int(s * self.zoom) for s in self.OGsize]
+        offset = [(r - s) // 2 for r, s in zip(self.full_res, size)]
+        if self.fps_mode == 'fast':
+            self.camera.set_controls({"ScalerCrop": offset + size, "FrameRate": (45), "Sharpness": (16)})
+        else:
+            self.camera.set_controls({
+                "ScalerCrop": offset + size,
+                "FrameRate": (38),
+                "Sharpness": (16),
+                "AeEnable": (True),
+                "AeConstraintMode": 0,
+                "AeExposureMode": 0,
+            })
                 
         
         self.fpsaveout = 0
@@ -121,16 +127,4 @@ class CameraThread(Thread):
             logger.exception("Thread %s died unexpectedly", self.__class__.__name__)
 
 
-#def getFrame(obj): 
-#    
-#        image = thread.imageout
-#    
-#    
-#    return image #send this to the main program 
-#
-
-
-            
-thread = CameraThread()
-thread.start()
 
