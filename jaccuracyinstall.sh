@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 #Jaccuracy Scope Installation Bash Script
 #Hello! If you edit this installing script, use the following: 
@@ -38,23 +39,19 @@ fi
 # _| |_    _| |_  _| |_    `'.'.   
 #|_____|  |_____||_____|  [\__) )                                  
 ###################################################
-#WORKS? Pip Prep (since its 'externally managed...') 
-rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
+# Pip installs via venv (avoids EXTERNALLY-MANAGED)
+SCOPE_ROOT="${SCOPE_ROOT:-/home/pi/share/JaccuracyScope}"
+PYVER=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 
-#PIP installs for Python 3.11 
-echo "Starting pip installs" 
+echo "Creating venv at /home/pi/share/venv"
+python3 -m venv /home/pi/share/venv
+. /home/pi/share/venv/bin/activate
+
+echo "Starting pip installs"
 apt install -y python3-picamera2
-pip install adafruit-circuitpython-lsm6ds 
-pip install numpy 
-pip install pillow 
-pip install st7789 
-pip install ctypes 
-pip install adafruit-circuitpython-thermal-printer 
-apt install -y python3-pil.imagetk 
-apt install -y python3-libcamera 
-pip3 install adafruit-circuitpython-seesaw 
-pip install --force-reinstall numpy==1.26.4  
-#1.18.5
+apt install -y python3-pil.imagetk
+apt install -y python3-libcamera
+pip install -r "$SCOPE_ROOT/requirements.txt"
 
 
 
@@ -156,15 +153,15 @@ sudo systemctl restart smbd
 #once all of this is ready.... 
 #copy files over to the pi
 
-#1. go into the 0.100 folder and compile the ballistics 
- #Works
- cd /home/pi/share/JaccuracyScope/Display/Balls
- gcc -fPIC -shared -o GNUball3.so exportme3.c -lm
- cp /home/pi/share/JaccuracyScope/Display/Balls/GNUball3.so /home/pi/share/JaccuracyScope/Display/
+#1. go into the 0.100 folder and compile the ballistics
+#Works
+cd "$SCOPE_ROOT/Display/Balls"
+gcc -fPIC -shared -o GNUball3.so exportme3.c -lm
+cp "$SCOPE_ROOT/Display/Balls/GNUball3.so" "$SCOPE_ROOT/Display/"
  
-#2. go into the SPIDev folder and install the new modified files with 
- #works 
- cd /home/pi/share/JaccuracyScope/modded_spidev-3.6
+#2. go into the SPIDev folder and install the new modified files with
+#works
+cd "$SCOPE_ROOT/modded_spidev-3.6"
  python3 setup.py install
  cd 
  #takes back to executed place
@@ -179,16 +176,14 @@ echo "Starting to Modify the ST7789 Library"
 #Go into the ST7789 folder path and change functions to FASTDISPLAY and such at /usr/local/lib/python3.11/dist-packages/ST7789 
 		#just replace the original file with this one.... check the python version first?
 
-#this sucks for checking python version....
- 
-ver=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
-if [ "$ver" == "31" ]; then
-    ver=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\)\([0-9]\).*/\1\2\3/')
-    echo "file lives in /usr/local/lib/python3.11/dist-packages/ST7789"
-    cp /home/pi/share/JaccuracyScope/st7789mod/__init__.py /usr/local/lib/python3.11/dist-packages/st7789
-elif [ "$ver" == "39" ]; then
-    echo "file lives in /usr/local/lib/python3.9/dist-packages/ST7789"
-    cp /home/pi/share/JaccuracyScope/st7789mod/__init__.py /usr/local/lib/python3.9/dist-packages/st7789
+# Copy modified ST7789 to venv site-packages
+VENV_ROOT="/home/pi/share/venv"
+ST7789_SITE="$VENV_ROOT/lib/python${PYVER}/site-packages/st7789"
+if [ -d "$ST7789_SITE" ]; then
+    echo "Installing modified ST7789 to venv (python${PYVER})"
+    cp "$SCOPE_ROOT/st7789mod/__init__.py" "$ST7789_SITE"
+else
+    echo "Warning: venv st7789 not found at $ST7789_SITE - run pip install first"
 fi
 
 
