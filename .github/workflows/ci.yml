@@ -10,7 +10,7 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install ruff
-      - run: ruff check Display/ --select "F,B001,B006"
+      - run: ruff check Display/ --select "F,E722,B006"
 
   compile-c:
     runs-on: ubuntu-latest

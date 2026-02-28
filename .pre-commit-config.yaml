@@ -3,7 +3,7 @@ repos:
     rev: v0.9.0
     hooks:
       - id: ruff
-        args: [--select, "F,B001,B006", --fix]
+        args: [--select, "F,E722,B006", --fix]
       - id: ruff-format
         args: [--check]
 
