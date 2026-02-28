@@ -75,12 +75,12 @@ Update this table as phases complete.
 | 1c | Input validation | `refactor/1c-input-validation` | complete |
 | 2a | Config system | `refactor/2a-config-system` | complete |
 | 2b | Consolidate threaders | `refactor/2b-consolidate-threaders` | complete |
-| 2c | Testing | `refactor/2c-testing` | pending |
+| 2c | Testing | `refactor/2c-testing` | complete |
 | 2d | API docs | `refactor/2d-api-docs` | complete |
-| 3a | Image performance | `refactor/3a-image-perf` | pending |
-| 3b | GPIO cleanup | `refactor/3b-gpio-cleanup` | pending |
-| 3c | Logging framework | `refactor/3c-logging` | pending |
-| 3d | Install modernization | `refactor/3d-install-modernize` | pending |
+| 3a | Image performance | `refactor/3a-image-perf` | complete |
+| 3b | GPIO cleanup | `refactor/3b-gpio-cleanup` | complete |
+| 3c | Logging framework | `refactor/3c-logging` | complete |
+| 3d | Install modernization | `refactor/3d-install-modernize` | complete |
 
 ## Prerequisites (dependency map)
 
