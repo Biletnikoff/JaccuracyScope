@@ -1,0 +1,22 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install ruff
+      - run: ruff check Display/ --select "F,B001,B006"
+
+  compile-c:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile ballistics library
+        run: |
+          cd Display/Balls
+          gcc -fPIC -shared -o GNUball3.so exportme3.c -lm -Wall
