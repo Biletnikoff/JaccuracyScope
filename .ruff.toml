@@ -2,8 +2,8 @@ line-length = 200
 target-version = "py311"
 
 [lint]
-select = ["F", "E722", "B006"]
-ignore = ["F841"]
+select = ["E", "F", "E722", "B006"]
+ignore = []
 
 [lint.per-file-ignores]
 "Display/disptest*.py" = ["F"]
