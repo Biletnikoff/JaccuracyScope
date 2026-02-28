@@ -24,11 +24,11 @@ import math
 
 import io 
 
-import CamThreaderSLOWFPS as CamThreader 
+from CamThreader import CamThread
 
-#import SensorThreaderSlowerRotaryEncodersTRY as SensorThreader 
-
-#import BallisticThreaderAdvancedExtension    as BallisticThreader
+cam = CamThread(fps_mode='slow')
+cam.daemon = True
+cam.start()
 
 import RPi.GPIO as GPIO 
 
@@ -196,7 +196,7 @@ distance = 500
 inc= 1
 pos = 270
 
-fpsCAM  = CamThreader.thread.get_fps()
+fpsCAM  = cam.get_fps()
 fpsavefr= 0 
    
 
@@ -216,7 +216,7 @@ dropcounter = 0
 
 
 #starting Zoom of camera 
-CamThreader.thread.zoom = 1.0
+cam.zoom = 1.0
 zoomtest = False
 zoomtester = 0
 zoomincrease = 1 
@@ -269,8 +269,8 @@ debouncer = 0
 
 
 
-CamThreader.thread.clicky   = int(scopeyoffset  * opticres)
-CamThreader.thread.clicky   = int(scopeyoffset  * opticres) 
+cam.clicky   = int(scopeyoffset  * opticres)
+cam.clicky   = int(scopeyoffset  * opticres) 
 
 
 
@@ -352,8 +352,8 @@ def main():
             
             
             
-                pasteimage4 = CamThreader.thread.get_frame() # get new frame from thread
-                fpsCAM  = CamThreader.thread.get_fps()  #grab the output 
+                pasteimage4 = cam.get_frame() # get new frame from thread
+                fpsCAM  = cam.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 
                 #try this commented.... 
@@ -372,7 +372,7 @@ def main():
                 
                 
                 
-                    #print(CamThreader.thread.clicky)
+                    #print(cam.clicky)
                 
                 
                 
@@ -387,22 +387,22 @@ def main():
                         zoomtester = 0
                         
                         if (zoomincrease == 1):
-                            CamThreader.thread.zoom = CamThreader.thread.zoom/1.01  #/2
+                            cam.zoom = cam.zoom/1.01  #/2
                             #scopexoffset = (scopexoffset + .125) 
                         # scopeyoffset = (scopeyoffset + (.1)) 
-                            #CamThreader.thread.clickx   = int(scopexoffset  * 14)
-                            #CamThreader.thread.clicky   = int(scopeyoffset  * 14)
+                            #cam.clickx   = int(scopexoffset  * 14)
+                            #cam.clicky   = int(scopeyoffset  * 14)
                             
-                            if (CamThreader.thread.zoom < (0.0626)):   
+                            if (cam.zoom < (0.0626)):   
                                 zoomincrease = 0 
                                         
                         else: 
-                            CamThreader.thread.zoom = CamThreader.thread.zoom*1.01 #*2
+                            cam.zoom = cam.zoom*1.01 #*2
                             #scopexoffset = (scopexoffset -.125) 
                             #scopeyoffset = (scopeyoffset - (.1) ) 
-                            #CamThreader.thread.clickx   = int(scopexoffset * 14)
-                            #CamThreader.thread.clicky   = int(scopeyoffset  * 14)
-                            if (CamThreader.thread.zoom > (0.90)):
+                            #cam.clickx   = int(scopexoffset * 14)
+                            #cam.clicky   = int(scopeyoffset  * 14)
+                            if (cam.zoom > (0.90)):
                                 zoomincrease = 1             
                         
                     
@@ -418,7 +418,7 @@ def main():
     
                 
                 #Apply scaling of camera to droppixels 
-                scaling = CamThreader.thread.zoom
+                scaling = cam.zoom
                 
              
              
@@ -452,8 +452,8 @@ def main():
                 
                 #######DrawZoomLevel
                 
-                #thezoom = int(1/CamThreader.thread.zoom)
-                MESSAGE = str("{:.1f}".format(1/CamThreader.thread.zoom)) + "x" 
+                #thezoom = int(1/cam.zoom)
+                MESSAGE = str("{:.1f}".format(1/cam.zoom)) + "x" 
                 draw.text((2,180), MESSAGE, spacing = 1, font=fontL, fill=(255, 255, 255))
                 
 
@@ -1342,22 +1342,22 @@ def LEFT_switch_callback(channel):      ##### SETTUNG
 
 def DOWN_switch_callback(channel):      ##### Zoom out 
     
-    zommer = CamThreader.thread.zoom *1.05  #+ 0.0625
+    zommer = cam.zoom *1.05  #+ 0.0625
     
     if (zommer > 1.0):
         zommer = 1.0
         
-    CamThreader.thread.zoom = zommer  
+    cam.zoom = zommer  
     
     print('Switch UP pressed')  
-    print("zoom is: " + str(CamThreader.thread.zoom))
+    print("zoom is: " + str(cam.zoom))
     
 def UP_switch_callback(channel):      ##### Zoom in 
  
-    CamThreader.thread.zoom = CamThreader.thread.zoom  / 1.05  #- 0.0625  
+    cam.zoom = cam.zoom  / 1.05  #- 0.0625  
     
     print('Switch DOWN pressed')       
-    print("zoom is: " + str(CamThreader.thread.zoom))
+    print("zoom is: " + str(cam.zoom))
     
 def CENTER_switch_callback(channel):      ##### SETTUNG
 
