@@ -34,9 +34,7 @@ import RPi.GPIO as GPIO
 
 from gpiozero import CPUTemperature
 
-from numpy import load
-from numpy import save
-
+from config import ASSETS_DIR
 
 #########MEasure Temp       vcgencmd measure_temp
 
@@ -122,12 +120,12 @@ disp._init()
 
 
 MESSAGE = "Wind: 5.0 mph"
-wind = 0;
+wind = 0
 
 WIDTH = 240 #disp.width
 HEIGHT = 240 #disp.height
 ##disp.set_window(x0=0, y0=0, x1=239, y1=239)
-img=Image.open("/home/pi/share/Display/LoadingScreen2.jpg")  
+img=Image.open(str(ASSETS_DIR / "LoadingScreen2.jpg"))  
 img=img.resize((240,240),resample=Image.LANCZOS) 
 disp.display(img,xs=0,xe=239,ys=0,ye=239)
 
@@ -162,13 +160,13 @@ if BigdisplayOption:
 
 
 
-image2=Image.open("/home/pi/share/Display/COMPASS4.jpg")   
+image2=Image.open(str(ASSETS_DIR / "COMPASS4.jpg"))   
 image2=image2.resize((180,7),resample=Image.LANCZOS)
 
 
-image_lob=Image.open("/home/pi/share/Display/lobstermodebase2.jpg")   
+image_lob=Image.open(str(ASSETS_DIR / "lobstermodebase2.jpg"))   
 
-image_settings=Image.open("/home/pi/share/Display/SettingsMenuBase5.jpg") 
+image_settings=Image.open(str(ASSETS_DIR / "SettingsMenuBase5.jpg")) 
 
 
 font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 8)
@@ -191,7 +189,7 @@ fps = 0
 
 
 
-imgcount = 1 ; 
+imgcount = 1  
 
 
 distance = 500
@@ -203,11 +201,11 @@ fpsavefr= 0
    
 
 
-looper= True;
+looper= True
 
 
 #variables needed for impact Preview box and smoothing 
-flash = True; 
+flash = True 
 droppixelsAverage = 0 
 windpixelsAverage = 0 
 filtersize = 24
@@ -240,8 +238,8 @@ drawsubsubs  = False
 
 
 #menu fo the settings 
-menuNumber= 0;
-settingAdjustNumber = 0.000; 
+menuNumber= 0
+settingAdjustNumber = 0.000 
 
 #needed hard 
 focallength = 77.25 #mm ########needs calibration - try 77.25 not 103 
@@ -266,7 +264,7 @@ takeimage = 0
 changeOpitcs = 0
 
 
-debounce = False; 
+debounce = False 
 debouncer = 0 
 
 
@@ -341,7 +339,7 @@ def main():
             pitch = 0
             roll = 0
             fpsSensor  = 0
-            pitch_d = pitch * 57.2957795;
+            pitch_d = pitch * 57.2957795
             
             if (changeOpitcs ==1 ):
                 opticres = 1 / ((math.atan(0.00155 / focallength)*57.295779513)*60)
@@ -369,8 +367,8 @@ def main():
                     debouncer += 1
                     #print("debouncing....")
                     if (debouncer  > 10): 
-                        debounce = False;
-                        debouncer = 0;
+                        debounce = False
+                        debouncer = 0
                 
                 
                 
@@ -414,7 +412,7 @@ def main():
                 
                 #############################    BALLISTICS CALCULATION ################################
                 #distance = 125 # Lasered,  will update later yds
-                distance_m = distance * 0.9144;
+                distance_m = distance * 0.9144
             
                 
     
