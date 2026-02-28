@@ -3,9 +3,10 @@
 
 
 double* sln;
+static int sln_valid = 0;
 
 
-double main( double bc, double v, double sh,double angle, double zero,double windspeed, double windangle, int G , double zeroanglein, double targetDistance, int justangle, double altitude, double pressure, double temperature, double relHum)
+double SolveBallistic( double bc, double v, double sh,double angle, double zero,double windspeed, double windangle, int G , double zeroanglein, double targetDistance, int justangle, double altitude, double pressure, double temperature, double relHum)
 {
 	int k=0;
 	//double* sln;
@@ -29,30 +30,30 @@ double main( double bc, double v, double sh,double angle, double zero,double win
 	
 	if (justangle == 0) {
 	if (G == 1) {
-
-	
+	if (sln != NULL) { free(sln); sln = NULL; sln_valid = 0; }
 	
 	// Now we have everything needed to generate a full solution.
 	// So we do.  The solution is stored in the pointer "sln" passed as the last argument.
 	// k has the number of yards the solution is valid for, also the number of rows in the solution.
-	k=SolveAll(G1,bc,v,sh,angle,zeroanglein,windspeed,windangle,&sln);
+	(void)(k=SolveAll(G1,bc,v,sh,angle,zeroanglein,windspeed,windangle,&sln));
 	
 	
 	}
 	
 	else if(G == 7){
+	if (sln != NULL) { free(sln); sln = NULL; sln_valid = 0; }
 
 	
 	// Now we have everything needed to generate a full solution.
 	// So we do.  The solution is stored in the pointer "sln" passed as the last argument.
 	// k has the number of yards the solution is valid for, also the number of rows in the solution.
-	k=SolveAll(G7,bc,v,sh,angle,zeroanglein,windspeed,windangle,&sln);		
+	(void)(k=SolveAll(G7,bc,v,sh,angle,zeroanglein,windspeed,windangle,&sln));		
 	
 	}
+	else return 0;
 	
 	// Now print a simple chart of X / Y trajectory spaced at 10yd increments lets do every hmm
 	int s=0;
-	double dropresult = 0.0;
 	double Yardageout[21];
 	double MOAout[21];
 	double OUTPUTresult[7];
@@ -106,7 +107,8 @@ double main( double bc, double v, double sh,double angle, double zero,double win
 		
 		
 		// cant return OUTPUTresult , Yardageout, 	MOAout;  more than one outputlol 
-	return  (GetMOA(sln,Distdesired)) ; //((double)Distdesired); //
+	if (sln == NULL) return 0;
+	return (GetMOA(sln, Distdesired)); //((double)Distdesired); //
 	
 	
 	
@@ -120,8 +122,8 @@ double main( double bc, double v, double sh,double angle, double zero,double win
 
 	} // end of justangle == 0 
 
-
-} //end main 
+	return 0;
+} //end SolveBallistic 
 
 
 
@@ -166,7 +168,7 @@ double SolveforAngler( double bc, double v, double sh,double angle, double zero,
 	
 	}
 
-	
+	return 0;
 }
 
 
@@ -236,7 +238,8 @@ double HandMeTime(int pos){
 int free_pointer(int hi){
 	
 	free(sln);
-	
+	sln = NULL;
+	sln_valid = 0;
 	return 0; 
 }
 

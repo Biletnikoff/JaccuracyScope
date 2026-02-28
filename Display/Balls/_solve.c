@@ -3,8 +3,10 @@ double ShootingAngle, double ZAngle, double WindSpeed, double WindAngle, double*
 
 	double* ptr;
         ptr = (double*)malloc(10*__BCOMP_MAXRANGE__*sizeof(double)+2048);
+	if (ptr == NULL) return -1;
 
 	double t=0;
+	if (Vi <= 0) return -1;
 	double dt=0.5/Vi;
 	double v=0;
 	double vx=0, vx1=0, vy=0, vy1=0;
@@ -27,6 +29,7 @@ double ShootingAngle, double ZAngle, double WindSpeed, double WindAngle, double*
 
 		vx1=vx, vy1=vy;	
 		v=pow(pow(vx,2)+pow(vy,2),0.5);
+		if (v < 0.001) break;
 		dt=0.5/v;
 	
 		// Compute acceleration using the drag function retardation	

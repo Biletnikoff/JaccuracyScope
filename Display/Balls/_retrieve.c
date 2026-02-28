@@ -1,4 +1,5 @@
 double GetRange(double* sln, int yardage){
+	if (sln == NULL || yardage < 0) return 0;
 	double size=sln[__BCOMP_MAXRANGE__*10+1];
 	if (yardage<size){
 		return sln[10*yardage];
@@ -7,6 +8,7 @@ double GetRange(double* sln, int yardage){
 }
 
 double GetPath(double* sln, int yardage){
+	if (sln == NULL || yardage < 0) return 0;
 	double size=sln[__BCOMP_MAXRANGE__*10+1];
 	if (yardage<size){
 		return sln[10*yardage+1];
@@ -15,6 +17,7 @@ double GetPath(double* sln, int yardage){
 }
 
 double GetMOA(double* sln, int yardage){
+	if (sln == NULL || yardage < 0) return 0;
 	double size=sln[__BCOMP_MAXRANGE__*10+1];
 	if (yardage<size){
 		return sln[10*yardage+2];
@@ -24,6 +27,7 @@ double GetMOA(double* sln, int yardage){
 
 
 double GetTime(double* sln, int yardage){
+	if (sln == NULL || yardage < 0) return 0;
 	double size=sln[__BCOMP_MAXRANGE__*10+1];
 	if (yardage<size){
 		return sln[10*yardage+3];
@@ -32,6 +36,7 @@ double GetTime(double* sln, int yardage){
 }
 
 double GetWindage(double* sln, int yardage){
+	if (sln == NULL || yardage < 0) return 0;
 	double size=sln[__BCOMP_MAXRANGE__*10+1];
 	if (yardage<size){
 		return sln[10*yardage+4];
@@ -40,6 +45,7 @@ double GetWindage(double* sln, int yardage){
 }
 
 double GetWindageMOA(double* sln, int yardage){
+	if (sln == NULL || yardage < 0) return 0;
 	double size=sln[__BCOMP_MAXRANGE__*10+1];
 	if (yardage<size){
 		return sln[10*yardage+5];
@@ -48,6 +54,7 @@ double GetWindageMOA(double* sln, int yardage){
 }
 
 double GetVelocity(double* sln, int yardage){
+	if (sln == NULL || yardage < 0) return 0;
 	double size=sln[__BCOMP_MAXRANGE__*10+1];
 	if (yardage<size){
 		return sln[10*yardage+6];
@@ -56,6 +63,7 @@ double GetVelocity(double* sln, int yardage){
 }
 
 double GetVx(double* sln, int yardage){
+	if (sln == NULL || yardage < 0) return 0;
 	double size=sln[__BCOMP_MAXRANGE__*10+1];
 	if (yardage<size){
 		return sln[10*yardage+7];
@@ -64,6 +72,7 @@ double GetVx(double* sln, int yardage){
 }
 
 double GetVy(double* sln, int yardage){
+	if (sln == NULL || yardage < 0) return 0;
 	double size=sln[__BCOMP_MAXRANGE__*10+1];
 	if (yardage<size){
 		return sln[10*yardage+8];
