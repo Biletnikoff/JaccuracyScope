@@ -48,3 +48,9 @@ repos:
         entry: '/home/pi/share/'
         language: pygrep
         types: [python, shell]
+      - id: run-tests
+        name: Run pytest suite
+        entry: bash -c 'python -m pytest tests/ -x -q'
+        language: system
+        stages: [pre-push]
+        pass_filenames: false

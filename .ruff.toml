@@ -6,5 +6,4 @@ select = ["E", "F", "E722", "B006"]
 ignore = []
 
 [lint.per-file-ignores]
-"Display/disptest*.py" = ["F"]
 "Display/BallisticThreader.py" = ["E501"]
