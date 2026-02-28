@@ -20,13 +20,10 @@ from logger import setup_logging
 setup_logging()
 from PIL import ImageFont 
 from PIL import ImageDraw
-from PIL import ImageChops
-import sys
 #import ballistics_test2 as ballistic
 import numpy as np
 import math
 
-import io 
 
 from CamThreader import CamThread
 
@@ -311,7 +308,7 @@ def main():
     #global flash
     #global zoomincrease
        
-    while (looper == True):
+    while (looper):
         fpsave =0 
         
         for i in range (1,30,1): #100 #FPS CALCUALTOR 
@@ -367,7 +364,7 @@ def main():
                         
 
 
-                if(debounce == True): 
+                if(debounce): 
                     debouncer += 1
                     #print("debouncing....")
                     if (debouncer  > 10): 

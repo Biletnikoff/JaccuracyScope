@@ -21,12 +21,10 @@ setup_logging()
 from PIL import ImageFont 
 from PIL import ImageDraw
 from PIL import ImageChops
-import sys
 #import ballistics_test2 as ballistic
 import numpy as np
 import math
 
-import io 
 
 from BallisticThreader import BallisticThread, clamp
 from CamThreader import CamThread
@@ -375,7 +373,7 @@ def main():
     #global flash
     #global zoomincrease
        
-    while (looper == True):
+    while (looper):
         fpsave =0 
         
         for i in range (1,30,1): #100 #FPS CALCUALTOR 
@@ -444,7 +442,7 @@ def main():
                             sensor.consume_encoder2()
                         
                     
-                    if (sensor.enc1_button_held == True and debounce1 == False):
+                    if (sensor.enc1_button_held and not debounce1):
                         print("Snapping Outward! ")
                         cam.zoom = 1.0
                         inputXShift = 0
@@ -452,7 +450,7 @@ def main():
                         debounce1 = True
                         
                         
-                elif (cam.zoom == 1.0 and debounce1 == False):
+                elif (cam.zoom == 1.0 and not debounce1):
                     if (enc1 !=  0 ):
                         newdist = distance + (enc1 * 25)
                         if(newdist < 25):
@@ -461,7 +459,7 @@ def main():
                         else:
                             distance = newdist
                             sensor.consume_encoder1()
-                    if (sensor.enc1_button_held == True):
+                    if (sensor.enc1_button_held):
                         print("Snapping Inward! ")
                         cam.zoom = 0.125
                         inputXShift = int(-windmoa)
@@ -483,7 +481,7 @@ def main():
                             
                         
                         
-                if (sensor.enc2_button_held == True and debounce2 == False):
+                if (sensor.enc2_button_held and not debounce2):
                     if(encoder2Mode == "Wind"): 
                         encoder2Mode = "Zoom"
                         print("Changed ENC2 to Zoom Mode")
@@ -494,14 +492,14 @@ def main():
 
 
                 #Debounce Encoder Pressed 
-                if(debounce1 == True): 
+                if(debounce1): 
                     debouncer1 += 1
                     #print("debouncing....")
                     if (debouncer1  > 10): 
                         debounce1 = False
                         debouncer1 = 0
                         
-                if(debounce2 == True): 
+                if(debounce2): 
                     debouncer2 += 1
                     #print("debouncing....")
                     if (debouncer2  > 10): 
@@ -527,7 +525,7 @@ def main():
                     
                 #If detected new laser results are in .... 
                 
-                if(bt.newLaserDistance == True):
+                if(bt.newLaserDistance):
                     tdistance = bt.distancelaser 
                     if (tdistance > 5 ):
                         distance = tdistance
@@ -873,7 +871,7 @@ def main():
                 draw.line([((119 + impactzoneX - 3 ) ,  (119 + impactzoneY + 3 )   ), ( (119 + impactzoneX  + 3 )  , (119 + impactzoneY + 3 )  ) ], flashcolor, width = 1  )
             
                 
-                if (bt.printerGO == True):
+                if (bt.printerGO):
                     draw.rectangle((69, 69, 169, 169), (0, 0, 255))
                     MESSAGE = " PRINTING .... "
                     draw.text((92,int(110+(pitch_d*1.5))), MESSAGE, font=fontL, spacing = 1, fill=(255, 255, 255)) #int(text_x), int(text_y)  
@@ -928,7 +926,7 @@ def main():
                 img.paste(plot,(0,240-30))  
 
                 ###Draw the Record thing 
-                if (recordVideo == True):
+                if (recordVideo):
                 
                     draw.ellipse((214,32,219,37),fill=(255, 0, 0), outline =(255, 0, 0))    
                     MESSAGE = "REC" 
@@ -938,7 +936,7 @@ def main():
                 
                 ### draw LASERING 
                 
-                if (bt.Lasering == True): 
+                if (bt.Lasering): 
                     MESSAGE = "LASERING..." 
                     draw.text((150,42), MESSAGE, spacing = 1, font=fontL, fill=(255, 10, 10))
                     
@@ -966,7 +964,7 @@ def main():
                     
                     
                 #MOVE TO ALL OTHER INSTANCES 
-                if (recordVideo == True):  
+                if (recordVideo):  
                     video.write(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR))
                     
                      
@@ -1080,7 +1078,7 @@ def main():
                     
                     
                 #MOVE TO ALL OTHER INSTANCES 
-                if (recordVideo == True):  
+                if (recordVideo):  
                     video.write(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR))   
                     
                     
@@ -1270,7 +1268,7 @@ def main():
                     
                     
                 #MOVE TO ALL OTHER INSTANCES 
-                if (recordVideo == True):  
+                if (recordVideo):  
                     video.write(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR))
                     
             
@@ -1385,7 +1383,7 @@ def main():
                     
                     
                 #MOVE TO ALL OTHER INSTANCES 
-                if (recordVideo == True):  
+                if (recordVideo):  
                     video.write(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR))
                     
                 ###################################################################################
@@ -1522,7 +1520,7 @@ def main():
                     
                     
                 #MOVE TO ALL OTHER INSTANCES 
-                if (recordVideo == True):  
+                if (recordVideo):  
                     video.write(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR))
 
             
@@ -2388,7 +2386,7 @@ def B3_switch_callback(channel):      ##### SETTUNG
     
     takeimage =1 
     
-    if (recordVideo == False): 
+    if (not recordVideo): 
         #name= "VIDEO" + str(time.time()) + ".mp4" #str(time.time())  + str(time.time()) "/home/pi/savedscreenshots/"+           
         name= "VIDEO" + str(time.time()) + ".avi" #str(time.time())  + str(time.time()) "/home/pi/savedscreenshots/"+           
         video = cv2.VideoWriter(name,fourcc, 29.9,(240,240))
@@ -2452,8 +2450,8 @@ def B1_switch_callback(channel):      ##### Zoom in
     
 
     
-    if (Scope_mode == 0 and bt.Lasering == False):
-        if (LaserOn == False ):
+    if (Scope_mode == 0 and not bt.Lasering):
+        if (not LaserOn ):
             LaserOn = True 
             bt.Lasering = LaserOn
             LaserOn = False

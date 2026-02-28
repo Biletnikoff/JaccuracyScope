@@ -1,12 +1,9 @@
 """Renders trajectory plots as PIL images for HUD overlay."""
 
 from PIL import Image
-from PIL import ImageFont 
 from PIL import ImageDraw
-from PIL import ImageChops
 
 import numpy as np
-import math
 
 
 
@@ -53,27 +50,27 @@ def trajPlotter(distanceData: np.ndarray, dropData: np.ndarray, dist_targ: float
      
 def elev2Y(inches: np.ndarray) -> np.ndarray:
     """Map elevation (inches) to Y pixel coordinates for compact plot."""
-    plotHeightpx = 25; 
-    pxoffset  = 2; 
+    plotHeightpx = 25 
+    pxoffset  = 2 
       
-    pxunits= (np.max(inches) - np.min(inches)) / plotHeightpx; 
-    h_max = np.max(inches) ;
+    pxunits= (np.max(inches) - np.min(inches)) / plotHeightpx 
+    h_max = np.max(inches) 
     
     
-    youtput = np.zeros(len(inches));
+    youtput = np.zeros(len(inches))
     
     for i in range(len(inches)):
-        youtput[i] = -(((inches[i])-h_max) / pxunits)    +  pxoffset ;
+        youtput[i] = -(((inches[i])-h_max) / pxunits)    +  pxoffset 
         
     return youtput
     
     
 def range2x(yards: np.ndarray, dist_targ: float) -> np.ndarray:
     """Map range (yards) to X pixel coordinates for compact plot."""
-    plotWidthpx = 100; 
-    pxoffset  = 5+1; 
+    plotWidthpx = 100 
+    pxoffset  = 5+1 
       
-    h_max = np.max(yards) ;
+    h_max = np.max(yards) 
     
     
     #if(dist_targ >= 1100 and dist_targ < 3000):
@@ -87,10 +84,10 @@ def range2x(yards: np.ndarray, dist_targ: float) -> np.ndarray:
     
     
     
-    xoutput = np.zeros(len(yards));
+    xoutput = np.zeros(len(yards))
     
     for i in range(len(yards)):
-        xoutput[i] = ((yards[i]) / dist_targ  ) * plotWidthpx    +  pxoffset ; ## was /1000 or /dividier for even scaling 
+        xoutput[i] = ((yards[i]) / dist_targ  ) * plotWidthpx    +  pxoffset  ## was /1000 or /dividier for even scaling 
         
     return xoutput  
     
@@ -111,27 +108,27 @@ def trajPlotter2(distanceData: np.ndarray, dropData: np.ndarray, dist_targ: floa
     
 def elev2Y2(inches: np.ndarray) -> np.ndarray:
     """Map elevation (inches) to Y pixel coordinates for lobster mode plot."""
-    plotHeightpx = 180; 
-    pxoffset  = 2; 
+    plotHeightpx = 180 
+    pxoffset  = 2 
       
-    pxunits= (np.max(inches) - np.min(inches)) / plotHeightpx; 
-    h_max = np.max(inches) ;
+    pxunits= (np.max(inches) - np.min(inches)) / plotHeightpx 
+    h_max = np.max(inches) 
     
     
-    youtput = np.zeros(len(inches));
+    youtput = np.zeros(len(inches))
     
     for i in range(len(inches)):
-        youtput[i] = -(((inches[i])-h_max) / pxunits)    +  pxoffset ;
+        youtput[i] = -(((inches[i])-h_max) / pxunits)    +  pxoffset 
         
     return youtput
     
     
 def range2x2(yards: np.ndarray, dist_targ: float) -> np.ndarray:
     """Map range (yards) to X pixel coordinates for lobster mode plot."""
-    plotWidthpx = 240; 
-    pxoffset  = 9; 
+    plotWidthpx = 240 
+    pxoffset  = 9 
       
-    h_max = np.max(yards) ;
+    h_max = np.max(yards) 
     
     
     #if(dist_targ >= 1100 and dist_targ < 3000):
@@ -145,10 +142,10 @@ def range2x2(yards: np.ndarray, dist_targ: float) -> np.ndarray:
     
     
     
-    xoutput = np.zeros(len(yards));
+    xoutput = np.zeros(len(yards))
     
     for i in range(len(yards)):
-        xoutput[i] = ((yards[i]) / 3000  ) * plotWidthpx    +  pxoffset ; ## was /1000 or /dividier for even scaling 
+        xoutput[i] = ((yards[i]) / 3000  ) * plotWidthpx    +  pxoffset  ## was /1000 or /dividier for even scaling 
         
     return xoutput  
 

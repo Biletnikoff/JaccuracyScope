@@ -1,9 +1,7 @@
 """Display driver thread for ST7789 240x240 SPI LCD."""
 
 import ST7789  
-import math
 from threading import Thread, Event
-import numpy as np
 import time 
 from PIL import Image  
 

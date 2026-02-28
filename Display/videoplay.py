@@ -1,6 +1,5 @@
 import ST7789  
 from PIL import Image  
-from time import sleep  
 import time 
 import cv2 
 import os
@@ -12,7 +11,7 @@ display.reset()
 display._init()  
 
 waittimer = 0.04
-dingus =1; 
+dingus =1 
 image=Image.open("LoadingScreen2.jpg")    
 #first diplay, then DiplayFast after this 
 display.display(image, xs =0 ,xe =239 ,ys=0,ye=239)  

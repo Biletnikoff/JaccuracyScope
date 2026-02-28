@@ -1,6 +1,5 @@
 import ST7789  
 from PIL import Image  
-from time import sleep  
 import time 
 display=ST7789.ST7789(port=0,cs=0,dc=25,backlight=22,spi_speed_hz=99900000)   #dc5 160000000
 display._spi.mode=3  
@@ -11,7 +10,7 @@ display._init()
 #sleep(2)  
 
 waittimer = 0.04
-dingus =1; 
+dingus =1 
 image=Image.open("TestGUI.jpg")  
 image=image.resize((240,240),resample=Image.LANCZOS)  
 display.display(image, xs =0 ,xe =239 ,ys=0,ye=239)  

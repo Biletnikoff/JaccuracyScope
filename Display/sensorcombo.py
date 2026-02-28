@@ -27,7 +27,7 @@ duration = 200
 stop_on_error = 1
 
 start_time = time.time()
-declinationAngle = 11.41666666666667;
+declinationAngle = 11.41666666666667
 
 #cal data Mag 
 
@@ -49,7 +49,7 @@ def convertToheading(rawX,rawY,rawZ):
      #   D = D + 360
        
     #return D
-    good = True;
+    good = True
     
     
     #if (x == 0 or x >= 262143):
@@ -88,15 +88,15 @@ def convertToheading(rawX,rawY,rawZ):
     #    heading = 999;
     #
    
-    normX = (rawX  - xoffset)/xscale;
-    normY = (rawY - yoffset)/yscale;
-    normZ = (rawZ  - zoffset)/zscale;
+    normX = (rawX  - xoffset)/xscale
+    normY = (rawY - yoffset)/yscale
+    normZ = (rawZ  - zoffset)/zscale
    
    
-    heading_r = math.atan2(normX, 0- normY);
+    heading_r = math.atan2(normX, 0- normY)
     #heading_r = math.atan2(normY,normZ);
     
-    heading_deg = heading_r * (180/math.pi) +  declinationAngle - 180;
+    heading_deg = heading_r * (180/math.pi) +  declinationAngle - 180
     
     if(heading_deg < 0 ): 
         heading_deg = heading_deg +360

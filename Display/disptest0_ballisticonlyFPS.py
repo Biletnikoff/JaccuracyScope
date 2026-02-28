@@ -1,16 +1,8 @@
-import ST7789  
-from PIL import Image  
 from time import sleep 
 import time
-from PIL import ImageFont 
-from PIL import ImageDraw
-from PIL import ImageChops
-import sys
 import ballistics_test2 as ballistic
-import numpy as np
 import math
 
-import io 
 #import cv2
 
 
@@ -34,10 +26,10 @@ pos = 270
 
 
 
-looper= True;
+looper= True
 
  
-while (looper == True):
+while (looper):
     fpsave =0 
     
     for i in range (1,30,1): #100
@@ -49,7 +41,7 @@ while (looper == True):
         
         #############################    BALLISTICS CALCULATION ################################
         distance = 800 # Lasered,  will update later yds
-        distance_m = distance * 0.9144;
+        distance_m = distance * 0.9144
         
         
         #inputs 
@@ -62,7 +54,7 @@ while (looper == True):
     
         
         
-        vstart= 2600*0.3048; #mps   #input 2600 from settings somewhere... with space.. 
+        vstart= 2600*0.3048 #mps   #input 2600 from settings somewhere... with space.. 
         pitch_d = pitch * 57.2957795
         pitch_fake = (4/60) * math.pi /180
         

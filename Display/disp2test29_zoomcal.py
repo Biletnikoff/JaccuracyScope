@@ -305,7 +305,7 @@ def main():
     #global flash
     #global zoomincrease
        
-    while (looper == True):
+    while (looper):
         fpsave =0 
         
         for i in range (1,30,1): #100 #FPS CALCUALTOR 
