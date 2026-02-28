@@ -1,3 +1,4 @@
+"""Sensor thread for IMU, magnetometer, and rotary encoders."""
 
 import logging
 import math
@@ -15,8 +16,13 @@ from adafruit_seesaw import seesaw, rotaryio, digitalio
 
 
 class SensorThread(Thread): 
+    """Reads IMU (ISM330DHCX), magnetometer (MMC5983MA), and rotary encoders.
 
-    def __init__(self): 
+    Provides orientation, compass heading, and encoder positions via thread-safe
+    getters. Runs as a daemon thread.
+    """
+
+    def __init__(self) -> None: 
     
         Thread.__init__(self)
         self._lock = Lock()
@@ -136,7 +142,8 @@ class SensorThread(Thread):
         
         
         
-    def convertToheading(self,rawX,rawY,rawZ):
+    def convertToheading(self, rawX: float, rawY: float, rawZ: float) -> float:
+        """Convert raw magnetometer values to compass heading in degrees."""
         #D = math.atan(y/x)*(180/math.pi)
         
         #if (D < 0):
@@ -167,13 +174,14 @@ class SensorThread(Thread):
         
         
  
-    def cal(self):
+    def cal(self) -> None:
+        """Run magnetometer calibration."""
         self.mmc.calibrate() 
     
     
         
         
-    def _run_loop(self):
+    def _run_loop(self) -> None:
         while True:
             fpsave = 0
             for i in range(1, self.MafVal + 1, 1):
@@ -260,33 +268,39 @@ class SensorThread(Thread):
             with self._lock:
                 self.fpsaveout = fpsave
 
-    def run(self):
+    def run(self) -> None:
         try:
             self._run_loop()
         except Exception:
             logger.exception("Thread %s died unexpectedly", self.__class__.__name__)
 
-    def get_orientation(self):
+    def get_orientation(self) -> tuple:
+        """Return (pitch, roll, lead, wobbleX, wobbleY) (thread-safe)."""
         with self._lock:
             return (self.pitch, self.roll, self.lead, self.wobbleX, self.wobbleY)
 
-    def get_encoders(self):
+    def get_encoders(self) -> tuple:
+        """Return (encoder1Output, encoder2Output) delta positions (thread-safe)."""
         with self._lock:
             return (self.encoder1Output, self.encoder2Output)
 
-    def get_compass(self):
+    def get_compass(self) -> float:
+        """Return compass heading in degrees (thread-safe)."""
         with self._lock:
             return self.output_heading
 
-    def get_fps(self):
+    def get_fps(self) -> float:
+        """Return the current sensor read FPS (thread-safe)."""
         with self._lock:
             return self.fpsaveout
 
-    def consume_encoder1(self):
+    def consume_encoder1(self) -> None:
+        """Reset encoder 1 delta to 0 (thread-safe)."""
         with self._lock:
             self.encoder1Output = 0
 
-    def consume_encoder2(self):
+    def consume_encoder2(self) -> None:
+        """Reset encoder 2 delta to 0 (thread-safe)."""
         with self._lock:
             self.encoder2Output = 0
 

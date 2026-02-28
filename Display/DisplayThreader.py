@@ -1,3 +1,5 @@
+"""Display driver thread for ST7789 240x240 SPI LCD."""
+
 import ST7789  
 import math
 from threading import Thread 
@@ -8,8 +10,13 @@ from PIL import Image
 
 
 class DisplayThread(Thread): 
+    """Drives the ST7789 LCD display in a background thread.
 
-    def __init__(self): 
+    Continuously refreshes the display with the current input image.
+    Provides FPS measurement via the fpsaveout attribute.
+    """
+
+    def __init__(self) -> None: 
     
         Thread.__init__(self)
         
@@ -45,11 +52,12 @@ class DisplayThread(Thread):
         self.ready = 3
         
         self.getting  = 0
-       
+   
     
         
         
-    def run(self):
+    def run(self) -> None:
+        """Main display refresh loop. Runs until thread is stopped."""
         self.ready = 0
         while True: 
             

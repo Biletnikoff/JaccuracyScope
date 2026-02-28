@@ -1,3 +1,5 @@
+"""Renders trajectory plots as PIL images for HUD overlay."""
+
 from PIL import Image
 from PIL import ImageFont 
 from PIL import ImageDraw
@@ -27,8 +29,17 @@ draw2lo = ImageDraw.Draw(graph2)
 
 #rawgraph = Image.open("plotbase.jpg")
 
-def trajPlotter(distanceData, dropData,dist_targ): 
+def trajPlotter(distanceData: np.ndarray, dropData: np.ndarray, dist_targ: float) -> tuple:
+    """Convert distance/drop arrays to plot coordinates for compact HUD mode.
 
+    Args:
+        distanceData: Range values in yards.
+        dropData: Bullet path (drop) values in inches.
+        dist_targ: Target distance for scaling.
+
+    Returns:
+        Tuple of (outputy, outputx) pixel coordinate arrays.
+    """
     #outputy = np.zeros(len(dropData))
                 
     #outputx = np.zeros((1,len(dropData[:]))
@@ -39,8 +50,8 @@ def trajPlotter(distanceData, dropData,dist_targ):
     return outputy, outputx 
     
      
-def elev2Y(inches):
-  
+def elev2Y(inches: np.ndarray) -> np.ndarray:
+    """Map elevation (inches) to Y pixel coordinates for compact plot."""
     plotHeightpx = 25; 
     pxoffset  = 2; 
       
@@ -56,8 +67,8 @@ def elev2Y(inches):
     return youtput
     
     
-def range2x(yards,dist_targ):
-  
+def range2x(yards: np.ndarray, dist_targ: float) -> np.ndarray:
+    """Map range (yards) to X pixel coordinates for compact plot."""
     plotWidthpx = 100; 
     pxoffset  = 5+1; 
       
@@ -85,8 +96,8 @@ def range2x(yards,dist_targ):
     
     
     #LOB MODE PLOTTER 
-def trajPlotter2(distanceData, dropData,dist_targ): 
-
+def trajPlotter2(distanceData: np.ndarray, dropData: np.ndarray, dist_targ: float) -> tuple:
+    """Convert distance/drop arrays to plot coordinates for lobster (full) mode."""
     #outputy = np.zeros(len(dropData))
                 
     #outputx = np.zeros((1,len(dropData[:]))
@@ -97,8 +108,8 @@ def trajPlotter2(distanceData, dropData,dist_targ):
     return outputy, outputx 
     
     
-def elev2Y2(inches):
-  
+def elev2Y2(inches: np.ndarray) -> np.ndarray:
+    """Map elevation (inches) to Y pixel coordinates for lobster mode plot."""
     plotHeightpx = 180; 
     pxoffset  = 2; 
       
@@ -114,8 +125,8 @@ def elev2Y2(inches):
     return youtput
     
     
-def range2x2(yards,dist_targ):
-  
+def range2x2(yards: np.ndarray, dist_targ: float) -> np.ndarray:
+    """Map range (yards) to X pixel coordinates for lobster mode plot."""
     plotWidthpx = 240; 
     pxoffset  = 9; 
       
@@ -148,8 +159,18 @@ def range2x2(yards,dist_targ):
 
 ## Test the coding: 
  
-def plotme(yards,inches,dist_targ, mode):   #plot up to this distance
-    
+def plotme(yards: np.ndarray, inches: np.ndarray, dist_targ: float, mode: int) -> Image.Image:
+    """Render trajectory plot as PIL image.
+
+    Args:
+        yards: Range values in yards.
+        inches: Bullet path values in inches.
+        dist_targ: Target distance for scaling.
+        mode: 0 = compact HUD mode, 1 = lobster (full) mode.
+
+    Returns:
+        PIL Image with trajectory overlay.
+    """
     if (mode==0):
         y, x = trajPlotter(yards, inches,dist_targ)
         

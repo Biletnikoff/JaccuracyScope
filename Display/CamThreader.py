@@ -1,3 +1,5 @@
+"""Camera capture thread for Pi Camera via picamera2."""
+
 from picamera2 import Picamera2
 from threading import Thread, Lock
 import logging
@@ -7,8 +9,12 @@ import time
 
 
 class CameraThread(Thread): 
+    """Captures frames from the Pi Camera in a background thread.
 
-    def __init__(self): 
+    Provides thread-safe access to the latest frame and FPS measurement.
+    """
+
+    def __init__(self) -> None: 
     
         Thread.__init__(self)
         self._lock = Lock()
@@ -63,15 +69,17 @@ class CameraThread(Thread):
         
         
         
-    def get_frame(self):
+    def get_frame(self) -> object:
+        """Return the latest captured frame (thread-safe)."""
         with self._lock:
             return self.imageout
 
-    def get_fps(self):
+    def get_fps(self) -> float:
+        """Return the current frames-per-second measurement (thread-safe)."""
         with self._lock:
             return self.fpsaveout
 
-    def _run_loop(self):
+    def _run_loop(self) -> None:
         while True:
             #sleep(.1)
             #self.val1 = self.val1 +1
@@ -106,7 +114,7 @@ class CameraThread(Thread):
             with self._lock:
                 self.fpsaveout = fpsave
 
-    def run(self):
+    def run(self) -> None:
         try:
             self._run_loop()
         except Exception:
