@@ -19,4 +19,4 @@ jobs:
       - name: Compile ballistics library
         run: |
           cd Display/Balls
-          gcc -fPIC -shared -o GNUball3.so exportme3.c -lm -Wall
+          gcc -fPIC -shared -o GNUball3.so exportme3.c -lm -Wall -Werror
