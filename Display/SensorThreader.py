@@ -3,7 +3,7 @@
 import logging
 import math
 import time
-from threading import Thread, Lock
+from threading import Thread, Lock, Event
 
 import board
 import numpy as np
@@ -25,6 +25,7 @@ class SensorThread(Thread):
     def __init__(self) -> None:
         Thread.__init__(self)
         self._lock = Lock()
+        self._stop_event = Event()
 
         self.pitch = 0
         self.output_heading = 0
@@ -114,8 +115,11 @@ class SensorThread(Thread):
         """Run magnetometer calibration."""
         self.mmc.calibrate()
 
+    def stop(self) -> None:
+        self._stop_event.set()
+
     def _run_loop(self) -> None:
-        while True:
+        while not self._stop_event.is_set():
             fpsave = 0
             for i in range(1, self.MafVal + 1, 1):
                 t_start = time.time()

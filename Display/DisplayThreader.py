@@ -2,7 +2,7 @@
 
 import ST7789  
 import math
-from threading import Thread 
+from threading import Thread, Event
 import numpy as np
 import time 
 from PIL import Image  
@@ -19,6 +19,7 @@ class DisplayThread(Thread):
     def __init__(self) -> None: 
     
         Thread.__init__(self)
+        self._stop_event = Event()
         
         #initial Display Setup! 
         self.disp=ST7789.ST7789(height=240, width=240, port=0, cs=0,dc=25,backlight=22,spi_speed_hz=62500*1000)   #dc5 160000000 48000000
@@ -56,10 +57,13 @@ class DisplayThread(Thread):
     
         
         
-    def run(self) -> None:
+    def stop(self) -> None:
+        self._stop_event.set()
+
+    def _run_loop(self) -> None:
         """Main display refresh loop. Runs until thread is stopped."""
         self.ready = 0
-        while True: 
+        while not self._stop_event.is_set(): 
             
             
             #self.val1 = self.val1 +1 
@@ -108,12 +112,21 @@ class DisplayThread(Thread):
             #print(self.pitchmaker)
 
             
-            
+
             
 
 
 
-            
+    def run(self) -> None:
+        try:
+            self._run_loop()
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception(
+                "Thread %s died unexpectedly", self.__class__.__name__
+            )
+
+
 thread = DisplayThread()
 thread.start()
 

@@ -4,7 +4,7 @@ import ctypes
 import logging
 import math
 import time
-from threading import Thread, Lock
+from threading import Thread, Lock, Event
 
 import numpy as np
 import serial
@@ -41,6 +41,7 @@ class BallisticThread(Thread):
     def __init__(self, enable_printer=False, enable_laser=False, laser_precision=1):
         Thread.__init__(self)
         self._lock = Lock()
+        self._stop_event = Event()
         self.enable_printer = enable_printer
         self.enable_laser = enable_laser
         self.laser_precision = laser_precision
@@ -343,8 +344,11 @@ class BallisticThread(Thread):
 
         return yout, plot
 
+    def stop(self):
+        self._stop_event.set()
+
     def _run_loop(self):
-        while True:
+        while not self._stop_event.is_set():
             fpsave = 0
 
             for i in range(1, self.MafVal + 1, 1):
