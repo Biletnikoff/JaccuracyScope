@@ -63,7 +63,7 @@ GPIO.setmode(GPIO.BCM)
 ###J_1 = 21
 ###J_2 = 20
 ###J_3 = 16
-###GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons so you dont short shit lol 
+###GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons - avoid shorting GPIO 
 ###GPIO.setup(J_DOWN, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 ###GPIO.setup(J_LEFT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 ###GPIO.setup(J_RIGHT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
@@ -93,7 +93,7 @@ GPIO.setup(J_1, GPIO.IN,pull_up_down=GPIO.PUD_UP)
 GPIO.setup(J_2, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 GPIO.setup(J_3, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 
-#GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons so you dont short shit lol 
+#GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons - avoid shorting GPIO 
 #GPIO.setup(J_DOWN, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 #GPIO.setup(J_LEFT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 #GPIO.setup(J_RIGHT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
@@ -231,7 +231,7 @@ distance = 500
 inc= 1
 pos = 270
 
-fpsCAM  = CamThreader.thread.fpsaveout
+fpsCAM  = CamThreader.thread.get_fps()
 fpsavefr= 0 
    
 
@@ -281,7 +281,7 @@ menuNumber= 0;
 settingAdjustNumber = 0.000; 
 
 #needed hard 
-#focallength = 77.25 #mm ########OHHHH THIS IS SHITTY    #.75 facto roff... try 77.25 not 103
+#focallength = 77.25 #mm ########needs calibration - try 77.25 not 103
 #Focal Length is now set by the config file :))) adjust with Scope Mode 3 
 
 #opticres = 14.0752366 #pixels per MOA 
@@ -384,10 +384,10 @@ def main():
             
             
             #From Sensor Thread, Always updating in backgorund 
-            head = SensorThreader.thread.output_heading
-            pitch = -SensorThreader.thread.pitch - (4.3 / 57.2957795)
-            roll = SensorThreader.thread.roll
-            fpsSensor  = SensorThreader.thread.fpsaveout
+            pitch, roll, lead, wobbleX, wobbleY = SensorThreader.thread.get_orientation()
+            head = SensorThreader.thread.get_compass()
+            pitch = -pitch - (4.3 / 57.2957795)
+            fpsSensor  = SensorThreader.thread.get_fps()
             pitch_d = pitch * 57.2957795;
             
             if (changeOpitcs ==1 ):
@@ -403,26 +403,26 @@ def main():
             
             
             
-                pasteimage4 = CamThreader.thread.imageout # get new frame from thread 
-                fpsCAM  = CamThreader.thread.fpsaveout  #grab the output 
+                pasteimage4 = CamThreader.thread.get_frame() # get new frame from thread 
+                fpsCAM  = CamThreader.thread.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 pasteimage4=pasteimage4.resize((240,180),resample=Image.NEAREST) #BIG FPS nearest is fast 
                 
                 
                 ##################### Rotary Encoder INPUTS    ################################################
-                
-                
+                enc1, enc2 = SensorThreader.thread.get_encoders()
+
                 #Encoder 1 Algorithm (Adjustments when zoomed)
                 if (CamThreader.thread.zoom < (1/2.0)):
                     #adjust the Elevation
-                    if (SensorThreader.thread.encoder1Output !=  0 ):
-                        inputYShift = inputYShift + (SensorThreader.thread.encoder1Output)
-                        SensorThreader.thread.encoder1Output = 0
-                    #adjust Wind 
-                    if(encoder2Mode == "Wind"): 
-                        if (SensorThreader.thread.encoder2Output !=  0 ):
-                            inputXShift = inputXShift + (SensorThreader.thread.encoder2Output)
-                            SensorThreader.thread.encoder2Output = 0      
+                    if (enc1 !=  0 ):
+                        inputYShift = inputYShift + enc1
+                        SensorThreader.thread.consume_encoder1()
+                    #adjust Wind
+                    if(encoder2Mode == "Wind"):
+                        if (enc2 !=  0 ):
+                            inputXShift = inputXShift + enc2
+                            SensorThreader.thread.consume_encoder2()
                         
                     
                     if (SensorThreader.thread.enc1_button_held == True and debounce1 == False):
@@ -434,14 +434,14 @@ def main():
                         
                         
                 elif (CamThreader.thread.zoom == 1.0 and debounce1 == False):
-                    if (SensorThreader.thread.encoder1Output !=  0 ):
-                        newdist = distance + (SensorThreader.thread.encoder1Output * 25)
+                    if (enc1 !=  0 ):
+                        newdist = distance + (enc1 * 25)
                         if(newdist < 25):
                             distance=25;
-                            SensorThreader.thread.encoder1Output = 0
-                        else: 
+                            SensorThreader.thread.consume_encoder1()
+                        else:
                             distance = newdist
-                            SensorThreader.thread.encoder1Output = 0                
+                            SensorThreader.thread.consume_encoder1()
                     if (SensorThreader.thread.enc1_button_held == True):
                         print("Snapping Inward! ")
                         CamThreader.thread.zoom = 0.125
@@ -449,18 +449,18 @@ def main():
                         inputYShift = int(-dropmoa)
                         debounce1 = True; 
                         
-                if (encoder2Mode == "Zoom"): 
+                if (encoder2Mode == "Zoom"):
                     #zoom the camera in on encoder 2 inputs...
-                    if (SensorThreader.thread.encoder2Output !=  0 ):
-                        newzoom = CamThreader.thread.zoom/(pow(1.1,SensorThreader.thread.encoder2Output)) 
+                    if (enc2 !=  0 ):
+                        newzoom = CamThreader.thread.zoom/(pow(1.1,enc2))
                         print ("new zoom is: " + str(newzoom))
                         if (newzoom > 1.0):
                             CamThreader.thread.zoom = 1.0
                         elif (newzoom < 0.0625):
                             CamThreader.thread.zoom = 0.0625
-                        else: 
+                        else:
                             CamThreader.thread.zoom = newzoom
-                        SensorThreader.thread.encoder2Output = 0    
+                        SensorThreader.thread.consume_encoder2()    
                             
                         
                         
@@ -491,7 +491,7 @@ def main():
                 
                 
                 
-                #correct the bullshit math i cant figure out.... 
+                #correct the approximate math 
                 if (CamThreader.thread.zoom > (1/2.0)): #2.9
                     scopexoffset = 0   #angle right 20  MOA 
                     scopeyoffset = 0 #angle up 40 MOA 
@@ -565,10 +565,9 @@ def main():
                 #head = SensorThreader.thread.output_heading
                 #pitch = -SensorThreader.thread.pitch #- 0.01308997
                 #roll = SensorThreader.thread.roll
-                #fpsSensor  = SensorThreader.thread.fpsaveout
+                #fpsSensor  = SensorThreader.thread.get_fps()
                 
-                wobbleY = SensorThreader.thread.wobbleY
-                wobbleX = SensorThreader.thread.wobbleX
+                # wobbleY, wobbleX from get_orientation above
                 wobble_radius = (math.sqrt((wobbleY*wobbleY)+(wobbleX*wobbleX))) + 2  
                 sight_angle = ( BallisticThreader.thread.gunSightangle * math.pi/180)#rads 
                 
@@ -602,10 +601,7 @@ def main():
 
                 
                 
-                fpsBalls = BallisticThreader.thread.fpsaveout
-                
-                solution = BallisticThreader.thread.solution
-                plot = BallisticThreader.thread.plotter
+                solution, plot, fpsBalls, _maxh = BallisticThreader.thread.get_output()
                 
                 timeOfFlight =  solution[5]
             
@@ -826,7 +822,7 @@ def main():
                 
                 
                 
-                MESSAGE = "   V " + "\n" +str("{:.2f}".format(pos))   ######TODO  was pos .2   SensorThreader.thread.lead*57.2958
+                MESSAGE = "   V " + "\n" +str("{:.2f}".format(pos))   ######TODO  was pos .2   lead*57.2958
                 
                 draw.rectangle((107,Yoffset,107+compbox_h+20 ,compbox_w + Yoffset-11), (0, 0, 0))  #disp.width, disp.height
                 draw.text((107,Yoffset), MESSAGE, font=fontL, spacing = 1, fill=(255, 255, 255)) #int(text_x), int(text_y)  
@@ -879,7 +875,7 @@ def main():
                 
                 
                 ##########Draw the gyro offset!!!!!! yay lol 
-                scanSpeed = SensorThreader.thread.lead*57.2958
+                scanSpeed = lead*57.2958
                 
                 if (abs(scanSpeed) > 0.083):
                     leadAngle = timeOfFlight * scanSpeed * 60 #Deg/s times seconds *60 = angle (min of degrees)
@@ -986,10 +982,9 @@ def main():
                 #head = SensorThreader.thread.output_heading
                 #pitch = -SensorThreader.thread.pitch
                 #roll = SensorThreader.thread.roll
-                #fpsSensor  = SensorThreader.thread.fpsaveout
+                #fpsSensor  = SensorThreader.thread.get_fps()
                 
-                wobbleY = SensorThreader.thread.wobbleY
-                wobbleX = SensorThreader.thread.wobbleX
+                # wobbleY, wobbleX from get_orientation above
                 wobble_radius = (math.sqrt((wobbleY*wobbleY)+(wobbleX*wobbleX))) + 2  
                 sight_angle = (BallisticThreader.thread.gunSightangle * math.pi/180)#rads 
                 
@@ -998,7 +993,7 @@ def main():
                 #pitch_d = pitch * 57.2957795
                 pitch_fake = (4/60) * math.pi /180
                     
-                Vx0x = round ( float(vstart * math.cos(pitch+sight_angle)) ,2 )  ########Check sight angle method... fuck 
+                Vx0x = round ( float(vstart * math.cos(pitch+sight_angle)) ,2 )  ########TODO: verify sight angle method 
                 Vy0y = round ( float(vstart * math.sin(pitch+sight_angle)) , 2 ) 
                             
                 pos = head
@@ -1017,10 +1012,7 @@ def main():
                 BallisticThreader.thread.wind_head_deg = 0
                 
                 
-                fpsBalls = BallisticThreader.thread.fpsaveout
-                
-                solutionLob = BallisticThreader.thread.solution
-                plotLob = BallisticThreader.thread.plotter            
+                solutionLob, plotLob, fpsBalls, _maxh = BallisticThreader.thread.get_output()            
                 
                 
                 ####Draw the Plot at bottom using Paste Function 
@@ -1029,7 +1021,7 @@ def main():
                 
                 ##Draw Score 
                 
-                howhighdiditgo = BallisticThreader.thread.maxheight*3.28084/1000
+                howhighdiditgo = _maxh*3.28084/1000
                 #print(howhighdiditgo)
                 
                 
@@ -1081,18 +1073,19 @@ def main():
                 BallisticThreader.thread.ScopeMode =2;  #not use ballistics in background when settings 
                 BallisticThreader.thread.dt = 1
                 BallisticThreader.thread.T = 2
-                fpsBalls = BallisticThreader.thread.fpsaveout
+                fpsBalls = BallisticThreader.thread.get_output()[2]
             
             
                 img.paste(image_settings,(0,0))
                 
     
-                # Read the Rotary Encoders for the Menu Input 
-                
-                if (SensorThreader.thread.encoder1Output !=  0 ):
-                    menuNumber = menuNumber + (SensorThreader.thread.encoder1Output)
-                    SensorThreader.thread.encoder1Output = 0
-                
+                # Read the Rotary Encoders for the Menu Input
+                enc1, enc2 = SensorThreader.thread.get_encoders()
+
+                if (enc1 !=  0 ):
+                    menuNumber = menuNumber + enc1
+                    SensorThreader.thread.consume_encoder1()
+
                 if (menuNumber > 11):
                     menuNumber = 0
                     Scope_mode = 4
@@ -1101,57 +1094,57 @@ def main():
                     
                 
                 
-                if (SensorThreader.thread.encoder2Output !=  0 ):
+                if (enc2 !=  0 ):
                     if (menuNumber == 0):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 0
-                        SensorThreader.thread.encoder2Output = 0
+                        settingAdjustNumber = enc2 * 0
+                        SensorThreader.thread.consume_encoder2()
                     elif (menuNumber == 1):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 0.001
+                        settingAdjustNumber = enc2 * 0.001
                         BallisticThreader.thread.caliber += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0                       
+                        SensorThreader.thread.consume_encoder2()                       
                     elif (menuNumber == 2):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 1
+                        settingAdjustNumber = enc2 * 1
                         BallisticThreader.thread.bullet_weight_grain += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0      
+                        SensorThreader.thread.consume_encoder2()      
                     elif (menuNumber == 3):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 1
+                        settingAdjustNumber = enc2 * 1
                         
-                        if (SensorThreader.thread.encoder2Output > 0):
+                        if (enc2 > 0):
                             BallisticThreader.thread.Gsolver = 7
-                        elif (SensorThreader.thread.encoder2Output < 0):
+                        elif (enc2 < 0):
                             BallisticThreader.thread.Gsolver = 1
-                        SensorThreader.thread.encoder2Output = 0                          
+                        SensorThreader.thread.consume_encoder2()                          
                     elif (menuNumber == 4):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 0.001
+                        settingAdjustNumber = enc2 * 0.001
                         BallisticThreader.thread.bc7_box += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0   
+                        SensorThreader.thread.consume_encoder2()   
                     elif (menuNumber == 5):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 25
+                        settingAdjustNumber = enc2 * 25
                         BallisticThreader.thread.zerodistance += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0                          
+                        SensorThreader.thread.consume_encoder2()                          
                     #elif (menuNumber == 6):
-                    #    settingAdjustNumber = SensorThreader.thread.encoder2Output * 1
-                    #    if (SensorThreader.thread.encoder2Output > 0):
+                    #    settingAdjustNumber = enc2 * 1
+                    #    if (enc2 > 0):
                     #        drawsubhashes = True
                     #        drawsubsubs  = True              
-                    #    elif (SensorThreader.thread.encoder2Output < 0):
+                    #    elif (enc2 < 0):
                     #        drawsubhashes = False
                     #        drawsubsubs  = False
-                    #    SensorThreader.thread.encoder2Output = 0                              
+                    #    SensorThreader.thread.consume_encoder2()                              
                     elif (menuNumber == 6):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 5
+                        settingAdjustNumber = enc2 * 5
                         BallisticThreader.thread.fps_box += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0    
+                        SensorThreader.thread.consume_encoder2()    
                     elif (menuNumber == 7):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 0.1
+                        settingAdjustNumber = enc2 * 0.1
                         windspeederrr= BallisticThreader.thread.windspeed
                         windspeederrr += settingAdjustNumber
                         if (windspeederrr < 0):
                             windspeederrr = 0; 
                         BallisticThreader.thread.windspeed = windspeederrr; 
-                        SensorThreader.thread.encoder2Output = 0                          
+                        SensorThreader.thread.consume_encoder2()                          
                     elif (menuNumber == 8):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 5
+                        settingAdjustNumber = enc2 * 5
                         winder= BallisticThreader.thread.wind_head_deg
                         winder += settingAdjustNumber
                         if (winder > 360):
@@ -1159,11 +1152,11 @@ def main():
                         elif (winder < 0):
                             winder += 360;  
                         BallisticThreader.thread.wind_head_deg = winder        
-                        SensorThreader.thread.encoder2Output = 0    
+                        SensorThreader.thread.consume_encoder2()    
                     elif (menuNumber == 11):
-                        if (SensorThreader.thread.encoder2Output > 0):
+                        if (enc2 > 0):
                             Scope_mode = 3; #start the FF adjust 
-                        SensorThreader.thread.encoder2Output = 0                           
+                        SensorThreader.thread.consume_encoder2()                           
 
                 
                 
@@ -1255,8 +1248,8 @@ def main():
             
             elif(Scope_mode == 3):  #Focal Length Calibration :) 
 
-                pasteimage4 = CamThreader.thread.imageout # get new frame from thread 
-                fpsCAM  = CamThreader.thread.fpsaveout  #grab the output 
+                pasteimage4 = CamThreader.thread.get_frame() # get new frame from thread 
+                fpsCAM  = CamThreader.thread.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 pasteimage4=pasteimage4.resize((240,180),resample=Image.NEAREST) #BIG FPS nearest is fast  
  
@@ -1275,22 +1268,23 @@ def main():
                 draw.text((2,180), MESSAGE, spacing = 1, font=fontL, fill=(255, 255, 255))
 
                 #Roatry Encoder
-                
-                ###### Focal Length LEVEL ADJUST 
-                if (SensorThreader.thread.encoder1Output !=  0 ):
+                enc1, enc2 = SensorThreader.thread.get_encoders()
+
+                ###### Focal Length LEVEL ADJUST
+                if (enc1 !=  0 ):
                     changeOpitcs = 1
-                    focallength = focallength + ((SensorThreader.thread.encoder1Output)/4)
-                    SensorThreader.thread.encoder1Output = 0
+                    focallength = focallength + ((enc1)/4)
+                    SensorThreader.thread.consume_encoder1()
                  #######ZOOM LEVEL ADJUST    
-                if (SensorThreader.thread.encoder2Output !=  0 ):
-                    newzoom = CamThreader.thread.zoom/(pow(2,SensorThreader.thread.encoder2Output)) 
+                if (enc2 !=  0 ):
+                    newzoom = CamThreader.thread.zoom/(pow(2,enc2)) 
                     if (newzoom > 1.0):
                         CamThreader.thread.zoom = 1.0
                     elif (newzoom < 0.0625):
                         CamThreader.thread.zoom = 0.0625
                     else: 
                         CamThreader.thread.zoom = newzoom
-                    SensorThreader.thread.encoder2Output = 0        
+                    SensorThreader.thread.consume_encoder2()        
                 
                 if (changeOpitcs == 1 ):
                     opticres = 1 / ((math.atan(0.00155 / focallength)*57.295779513)*60)
@@ -1373,17 +1367,17 @@ def main():
                 BallisticThreader.thread.ScopeMode =2;  #not use ballistics in background when settings 
                 BallisticThreader.thread.dt = 1
                 BallisticThreader.thread.T = 2
-                fpsBalls = BallisticThreader.thread.fpsaveout
+                fpsBalls = BallisticThreader.thread.get_output()[2]
             
             
                 img.paste(image_settingsP2,(0,0))
-                
-    
-                # Read the Rotary Encoders for the Menu Input 
-                
-                if (SensorThreader.thread.encoder1Output !=  0 ):
-                    menuNumber = menuNumber + (SensorThreader.thread.encoder1Output)
-                    SensorThreader.thread.encoder1Output = 0
+
+                # Read the Rotary Encoders for the Menu Input
+                enc1, enc2 = SensorThreader.thread.get_encoders()
+
+                if (enc1 !=  0 ):
+                    menuNumber = menuNumber + (enc1)
+                    SensorThreader.thread.consume_encoder1()
                 
                 if (menuNumber > 6):
                     menuNumber = 6
@@ -1392,35 +1386,35 @@ def main():
                     Scope_mode = 2 
                 
                 
-                if (SensorThreader.thread.encoder2Output !=  0 ):
+                if (enc2 !=  0 ):
                     if (menuNumber == 0):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 0
-                        SensorThreader.thread.encoder2Output = 0
+                        settingAdjustNumber = enc2 * 0
+                        SensorThreader.thread.consume_encoder2()
                     elif (menuNumber == 1):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 50
+                        settingAdjustNumber = enc2 * 50
                         BallisticThreader.thread.Atm_altitude += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0                       
+                        SensorThreader.thread.consume_encoder2()                       
                     elif (menuNumber == 2):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 0.25
+                        settingAdjustNumber = enc2 * 0.25
                         BallisticThreader.thread.Atm_pressure += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0      
+                        SensorThreader.thread.consume_encoder2()      
                     elif (menuNumber == 3):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 1
+                        settingAdjustNumber = enc2 * 1
                         BallisticThreader.thread.Atm_temperature += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0    
+                        SensorThreader.thread.consume_encoder2()    
                          
                     elif (menuNumber == 4):
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 0.01
+                        settingAdjustNumber = enc2 * 0.01
                         BallisticThreader.thread.Atm_RelHumidity += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0   
+                        SensorThreader.thread.consume_encoder2()   
                     elif (menuNumber == 5): #latitude 
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 1
+                        settingAdjustNumber = enc2 * 1
                         #BallisticThreader.thread.zerodistance += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0                                                      
+                        SensorThreader.thread.consume_encoder2()                                                      
                     elif (menuNumber == 6): #longitude 
-                        settingAdjustNumber = SensorThreader.thread.encoder2Output * 1
+                        settingAdjustNumber = enc2 * 1
                         #BallisticThreader.thread.fps_box += settingAdjustNumber
-                        SensorThreader.thread.encoder2Output = 0    
+                        SensorThreader.thread.consume_encoder2()    
    
 
                 

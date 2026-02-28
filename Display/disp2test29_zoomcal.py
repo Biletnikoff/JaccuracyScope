@@ -45,7 +45,7 @@ GPIO.setmode(GPIO.BCM)
 ###J_1 = 21
 ###J_2 = 20
 ###J_3 = 16
-###GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons so you dont short shit lol 
+###GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons - avoid shorting GPIO 
 ###GPIO.setup(J_DOWN, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 ###GPIO.setup(J_LEFT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 ###GPIO.setup(J_RIGHT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
@@ -72,7 +72,7 @@ J_1 = 21
 J_2 = 20
 J_3 = 16
 
-GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons so you dont short shit lol 
+GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons - avoid shorting GPIO 
 GPIO.setup(J_DOWN, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 GPIO.setup(J_LEFT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 GPIO.setup(J_RIGHT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
@@ -189,7 +189,7 @@ distance = 485.0
 inc= 1
 pos = 270
 
-fpsCAM  = CamThreader.thread.fpsaveout
+fpsCAM  = CamThreader.thread.get_fps()
 fpsavefr= 0 
    
 
@@ -238,7 +238,7 @@ drawsubsubs  = True
 menuNumber= 0;
 
 #needed hard 
-focallength = 103 #mm ########OHHHH THIS IS SHITTY 
+focallength = 103 #mm ########needs calibration 
 
 #opticres = 14.0752366 #pixels per MOA 
 opticres = 1 / ((math.atan(0.00155 / focallength)*57.295779513)*60)
@@ -345,8 +345,8 @@ def main():
             
             
             
-                pasteimage4 = CamThreader.thread.imageout # get new frame from thread 
-                fpsCAM  = CamThreader.thread.fpsaveout  #grab the output 
+                pasteimage4 = CamThreader.thread.get_frame() # get new frame from thread 
+                fpsCAM  = CamThreader.thread.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 pasteimage4=pasteimage4.resize((240,180),resample=Image.NEAREST) #BIG FPS nearest is fast 
                 
@@ -355,7 +355,7 @@ def main():
                 
                 
                 
-                #correct the bullshit math i cant figure out.... 
+                #correct the approximate math 
                 if (CamThreader.thread.zoom > (1/2.0)): #2.9
                     scopexoffset = 0   #angle right 20  MOA 
                     scopeyoffset = 0 #angle up 40 MOA 
@@ -767,7 +767,7 @@ def main():
                 #pitch_d = pitch * 57.2957795
                 pitch_fake = (4/60) * math.pi /180
                     
-                Vx0x = round ( float(vstart * math.cos(pitch+sight_angle)) ,2 )  ########Check sight angle method... fuck 
+                Vx0x = round ( float(vstart * math.cos(pitch+sight_angle)) ,2 )  ########TODO: verify sight angle method 
                 Vy0y = round ( float(vstart * math.sin(pitch+sight_angle)) , 2 ) 
                             
                 pos = head

@@ -130,7 +130,7 @@ def getIMUdata():
     data = mmc.read_data()
     #logdata = f"{data.x_raw} {data.y_raw} {data.z_raw} {data.t_raw} {data.x:.6f} {data.y:.6f} {data.z:.6f} {data.t:.3f} {mmc.caldata[0]} {mmc.caldata[1]} {mmc.caldata[2]}"
      
-    output_heading = convertToheading(data.x_raw, data.y_raw, data.z_raw) #uncalibrated and sucks big cock 
+    output_heading = convertToheading(data.x_raw, data.y_raw, data.z_raw) #uncalibrated - needs calibration 
     #print(data.x)
     
     output_accX = accSensor.acceleration[0]
