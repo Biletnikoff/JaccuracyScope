@@ -16,14 +16,15 @@ import math
 #inchesTest = np.array([-0.8, -5.1, -15.2, -40, -59.0, -65, -80 ])
 
 
-graph=Image.open("plotbase.jpg")
-rawgraph=Image.open("plotbase.jpg")
+# Cached base images (loaded once at module level)
+_plotbase = Image.open("plotbase.jpg")
+graph = _plotbase.copy()
+rawgraph = _plotbase
 draw2 = ImageDraw.Draw(graph)
 
-
-
-graph2=Image.open("lobstermodebase2.jpg")
-rawgraph2=Image.open("lobstermodebase2.jpg")
+_lobsterbase = Image.open("lobstermodebase2.jpg")
+graph2 = _lobsterbase.copy()
+rawgraph2 = _lobsterbase
 draw2lo = ImageDraw.Draw(graph2)
 
 
@@ -187,9 +188,9 @@ def plotme(yards: np.ndarray, inches: np.ndarray, dist_targ: float, mode: int) -
     
         #print(max(x))
         #draw2.rectangle((6, 0 , 94, 180), (0,0,0))
-        for i in range(len(x)-1):
-            draw2.point((x[i],y[i]),(0,120,255))
-            #draw2.point((x[i],y[i]+1),(0,120,255)) #makes the image wider lolz
+        points = [(int(round(x[i])), int(round(y[i]))) for i in range(len(x))]
+        if len(points) > 1:
+            draw2.line(points, fill=(0, 120, 255), width=1)
         #graph.show() 
         return graph
         
@@ -202,12 +203,9 @@ def plotme(yards: np.ndarray, inches: np.ndarray, dist_targ: float, mode: int) -
         
         #print(max(x))
         #draw2lo.rectangle((9, 0, 239, 177), (0,0,0))  #177
-        for i in range(len(x)-1):
-            draw2lo.point((x[i],y[i]+30),(0,120,255))
-            #draw2.point((x[i],y[i]+1),(0,120,255)) #makes the image wider lolz
-            draw2lo.point((x[i],y[i]-1+30),(0,120,255)) #makes the image wider lolz
-            draw2lo.point((x[i]+1,y[i]+30),(0,120,255))
-            draw2lo.point((x[i]-1,y[i]+30),(0,120,255))
+        points = [(int(round(x[i])), int(round(y[i] + 30))) for i in range(len(x))]
+        if len(points) > 1:
+            draw2lo.line(points, fill=(0, 120, 255), width=2)
         #graph.show() 
         
 
