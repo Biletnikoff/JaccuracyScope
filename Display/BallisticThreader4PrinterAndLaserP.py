@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 import serial
 import adafruit_thermal_printer
 
-import ctypes 
+import ctypes
+
+from config import LIB_DIR
 
 import DataPlotter as grapher
 
@@ -51,8 +53,8 @@ class BallisticThread(Thread):
         Thread.__init__(self)
         self._lock = Lock()
 
-        #need for the GNU compiled solver to run fast :) link path below 
-        self.GNUballCLASS = ctypes.CDLL("/home/pi/share/Display/GNUball3.so") #compiled, after edits, recompile with     gcc -fPIC -shared -o example.so example.c -lm 
+        #need for the GNU compiled solver to run fast :) link path below
+        self.GNUballCLASS = ctypes.CDLL(str(LIB_DIR / "GNUball3.so")) 
         
         self.GNUball  = self.GNUballCLASS.SolveBallistic
         self.GNUball.argtypes = [ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double,ctypes.c_double,ctypes.c_int,ctypes.c_double,ctypes.c_double,ctypes.c_double,ctypes.c_double] 
