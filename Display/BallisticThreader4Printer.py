@@ -18,7 +18,25 @@ import adafruit_thermal_printer
 
 import ctypes 
 
-import DataPlotter as grapher 
+import DataPlotter as grapher
+
+VALID_RANGES = {
+    'caliber': (0.17, 1.0),
+    'bullet_weight_grain': (10, 1000),
+    'bc7_box': (0.01, 1.5),
+    'fps_box': (100, 5000),
+    'Atm_altitude': (-1000, 50000),
+    'Atm_pressure': (20.0, 35.0),
+    'Atm_temperature': (-60, 140),
+    'Atm_RelHumidity': (0.0, 1.0),
+    'zerodistance': (10, 2000),
+    'windspeed': (0, 100),
+}
+
+
+def clamp(value, key):
+    lo, hi = VALID_RANGES[key]
+    return max(lo, min(hi, value))
 
 
 class BallisticThread(Thread): 
@@ -516,7 +534,14 @@ class BallisticThread(Thread):
                 
                     if (self.ScopeMode == 0 ):
                         #Solve with the GNU program.... C based. Compiled.
-                        
+                        if self.fps_box <= 0 or self.bc7_box <= 0:
+                            logger.warning(
+                                "Invalid ballistic params: fps=%s bc=%s",
+                                self.fps_box,
+                                self.bc7_box,
+                            )
+                            time.sleep(0.1)
+                            continue
                         #need solution to be  [distanceM, heightM, Vxmps, Vymps, windriftMeters, zspeed(notused), notused] 
                         #need solver to pass an array of trajectory if we want to plot it....   array? how... ? 
                         
