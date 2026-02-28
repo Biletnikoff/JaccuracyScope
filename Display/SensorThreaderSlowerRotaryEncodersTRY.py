@@ -1,10 +1,13 @@
 
+import logging
 import math
 from mmc5983_2 import MMC5983
-from threading import Thread 
+from threading import Thread, Lock
 import numpy as np
+
+logger = logging.getLogger(__name__)
 import board
-from adafruit_lsm6ds import Rate, AccelRange, GyroRange
+from adafruit_lsm6ds import GyroRange
 from adafruit_lsm6ds.ism330dhcx import ISM330DHCX
 import time 
 
@@ -16,8 +19,8 @@ class SensorThread(Thread):
     def __init__(self): 
     
         Thread.__init__(self)
-        
-        
+        self._lock = Lock()
+
         self.pitch = 0
         self.output_heading = 0
         self.roll = 0
@@ -83,7 +86,7 @@ class SensorThread(Thread):
         
         
         #Mag Calibration Area 
-        self.declinationAngle = 10-7.85-3;
+        self.declinationAngle = 10-7.85-3
         #self.degoffset =  108-90; 
         
         self.MafVal = 3
@@ -140,19 +143,19 @@ class SensorThread(Thread):
         #   D = D + 360
         
         #return D
-        good = True;
+        good = True
        
-        normX = (rawX  - self.xoffset)/self.xscale;
-        normY = (rawY  - self.yoffset)/self.yscale;
-        normZ = (rawZ  - self.zoffset)/self.zscale;
+        normX = (rawX  - self.xoffset)/self.xscale
+        normY = (rawY  - self.yoffset)/self.yscale
+        normZ = (rawZ  - self.zoffset)/self.zscale
         
         #print(str(rawX) + "  " + str(rawY)+ "   " + str(rawZ)) 
         
         
-        heading_r = math.atan2(-normZ,  -normY);
+        heading_r = math.atan2(-normZ,  -normY)
         #heading_r = math.atan2(normY,normZ);
         
-        heading_deg = heading_r * (180/math.pi) -  self.declinationAngle + 180;
+        heading_deg = heading_r * (180/math.pi) -  self.declinationAngle + 180
         
         if(heading_deg < 0 ): 
             heading_deg = heading_deg +360
@@ -170,154 +173,123 @@ class SensorThread(Thread):
     
         
         
-    def run(self):
-        
-        while True: 
-            
-            #self.val1 = self.val1 +1 
-
-            
-            
-            #Get a frame : 
-            fpsave=0 
-                    
-
-                  
-            
-            #moving Average Filter 
-            for i in range (1,self.MafVal+1,1): 
-            
-            
+    def _run_loop(self):
+        while True:
+            fpsave = 0
+            for i in range(1, self.MafVal + 1, 1):
                 t_start = time.time()
-                
-                try: 
+                try:
                     self.data = self.mmc.read_data()
-                except: 
-                    print("Catching Gyro ... lol ")
-                    
-                #logdata = f"{data.x_raw} {data.y_raw} {data.z_raw} {data.t_raw} {data.x:.6f} {data.y:.6f} {data.z:.6f} {data.t:.3f} {mmc.caldata[0]} {mmc.caldata[1]} {mmc.caldata[2]}"
-                
+                except OSError as e:
+                    logger.warning("Magnetometer read failed: %s", e, exc_info=True)
+                    if not hasattr(self, 'data'):
+                        continue
+
                 self.compassx[i-1] = self.data.x_raw
                 self.compassy[i-1] = self.data.y_raw
-                self.compassz[i-1] = self.data.z_raw 
-                
-                #self.headmaker = self.convertToheading(self.data.x_raw, self.data.y_raw, self.data.z_raw) #uncalibrated and sucks big cock 
-                #print(data.x) #does not workaround zero... 
-                
-                try: 
-                    output_accX = self.accSensor.acceleration[0]
-                    output_accY = self.accSensor.acceleration[1]
-                    output_accZ = self.accSensor.acceleration[2]
-                except: 
-                    output_accX = 0
-                    output_accY = 0
-                    output_accZ = 0
-                    
-                    
+                self.compassz[i-1] = self.data.z_raw
+
+                output_accX = 0
+                output_accY = 0
+                output_accZ = 0
+                for attempt in range(3):
+                    try:
+                        output_accX = self.accSensor.acceleration[0]
+                        output_accY = self.accSensor.acceleration[1]
+                        output_accZ = self.accSensor.acceleration[2]
+                        break
+                    except OSError:
+                        if attempt == 2:
+                            logger.error("I2C read failed after 3 attempts")
+                        time.sleep(0.01 * (2 ** attempt))
+
                 try:
                     self.gyrox = self.accSensor.gyro[0] - self.gyroFixX
                     self.gyroy = self.accSensor.gyro[1] - self.gyroFixY
                     self.gyroz = self.accSensor.gyro[2] - self.gyroFixZ
-                except:
-                    print("Catching Gyro ... lol ")
+                except OSError as e:
+                    logger.warning("Gyro read failed: %s", e, exc_info=True)
                     self.gyrox = 0
                     self.gyroy = 0
                     self.gyroz = 0
-                    
-                #print("gyro")
-                #print(self.gyrox)
-                #print(self.gyroy)
-                #print(self.gyroz)
-                
-                       
-                
+
                 self.leadmaker[i-1] = self.gyroy
                 self.wobble2xmaker[i-1] = self.gyroz
                 self.wobble2ymaker[i-1] = self.gyroy
-                self.pitchmaker[i-1] =math.atan2(output_accZ,math.sqrt((output_accY*output_accY)+(output_accX*output_accX)))
-                self.rollmaker[i-1] =math.atan2(output_accY,math.sqrt((output_accX*output_accX)+(output_accZ*output_accZ)))
-                
-                
-                #while((time.time() - t_start) < 0.01):
-                time.sleep(.01)  #0.01 .016 was a good val just on the accell and shit.  need more  
-                
+                self.pitchmaker[i-1] = math.atan2(output_accZ, math.sqrt((output_accY*output_accY)+(output_accX*output_accX)))
+                self.rollmaker[i-1] = math.atan2(output_accY, math.sqrt((output_accX*output_accX)+(output_accZ*output_accZ)))
+
+                time.sleep(.01)
                 t_end = time.time()
                 fps = -1/(t_start - t_end)
                 fpsave = fpsave + (fps/self.MafVal)
-                
-                #print(output_accZ)
-                
-                
-                
-            #fpsave = fpsave/20
-            self.fpsaveout = fpsave
-            
-            # negate the position to make clockwise rotation positive
+
             try:
                 self.enc1_position = -self.encoder1.position
                 self.enc2_position = -self.encoder2.position
-            except:
-                print("Catching... lol ")
-                self.enc1_position = 0 
-                self.enc2_position = 0 
-            
+            except OSError as e:
+                logger.warning("Encoder position read failed: %s", e, exc_info=True)
+                self.enc1_position = 0
+                self.enc2_position = 0
 
             try:
                 if (self.enc1_position != self.enc1_last_position and self.enc1_position < 2147000000):
-                    self.encoder1Output = self.enc1_position - self.enc1_last_position 
+                    self.encoder1Output = self.enc1_position - self.enc1_last_position
                     self.enc1_last_position = self.enc1_position
-                    #print("enc1_Position: {}".format(self.enc1_position))
-                    #print(str(self.encoder1Output))
-                
                 if not self.enc1_button.value and not self.enc1_button_held:
                     self.enc1_button_held = True
-                    #print("enc1_Button pressed")
-                
                 if self.enc1_button.value and self.enc1_button_held:
                     self.enc1_button_held = False
-                    #print("enc1_Button released")                   
-                    
                 if (self.enc2_position != self.enc2_last_position and self.enc2_position < 2147000000):
                     self.encoder2Output = self.enc2_position - self.enc2_last_position
                     self.enc2_last_position = self.enc2_position
-                    #print("enc2_Position: {}".format(self.enc2_position))
-                    #print(str(self.encoder2Output))
-                
                 if not self.enc2_button.value and not self.enc2_button_held:
                     self.enc2_button_held = True
-                    #print("enc2_Button pressed")
-                
                 if self.enc2_button.value and self.enc2_button_held:
                     self.enc2_button_held = False
-                    #print("enc2_Button released") 
-            except:
-                print("Catching BACKEND OF SHIT... lol WTF DUDE ")    
-                #self.enc1_button_held = False
-                #self.enc2_button_held = False
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-            
-            #print(self.pitchmaker)
+            except OSError as e:
+                logger.warning("Encoder/button read failed: %s", e, exc_info=True)
+
             self.lead = np.average(self.leadmaker)
-            self.pitch = np.average(self.pitchmaker) 
-            self.roll  = np.average(self.rollmaker)
-            self.wobbleX = np.std(self.wobble2xmaker)*10000#np.std(self.rollmaker)*1000   #make extra 0>> 
-            self.wobbleY = np.std(self.wobble2ymaker)*10000#np.std(self.pitchmaker)*1000
-            self.output_heading =  self.convertToheading(np.average(self.compassx),np.average(self.compassy),np.average(self.compassx))
-            
-            
-            
+            self.pitch = np.average(self.pitchmaker)
+            self.roll = np.average(self.rollmaker)
+            self.wobbleX = np.std(self.wobble2xmaker)*10000
+            self.wobbleY = np.std(self.wobble2ymaker)*10000
+            self.output_heading = self.convertToheading(np.average(self.compassx), np.average(self.compassy), np.average(self.compassx))
+
+            with self._lock:
+                self.fpsaveout = fpsave
+
+    def run(self):
+        try:
+            self._run_loop()
+        except Exception:
+            logger.exception("Thread %s died unexpectedly", self.__class__.__name__)
+
+    def get_orientation(self):
+        with self._lock:
+            return (self.pitch, self.roll, self.lead, self.wobbleX, self.wobbleY)
+
+    def get_encoders(self):
+        with self._lock:
+            return (self.encoder1Output, self.encoder2Output)
+
+    def get_compass(self):
+        with self._lock:
+            return self.output_heading
+
+    def get_fps(self):
+        with self._lock:
+            return self.fpsaveout
+
+    def consume_encoder1(self):
+        with self._lock:
+            self.encoder1Output = 0
+
+    def consume_encoder2(self):
+        with self._lock:
+            self.encoder2Output = 0
+
 
 #def getFrame(obj): 
 #    
