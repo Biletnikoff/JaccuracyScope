@@ -28,7 +28,26 @@ import CamThreader
 
 #import SensorThreader 
 
-import BallisticThreaderAdvancedExtension    as BallisticThreader
+import BallisticThreaderAdvancedExtension as BallisticThreader
+
+VALID_RANGES = {
+    'caliber': (0.17, 1.0),
+    'bullet_weight_grain': (10, 1000),
+    'bc7_box': (0.01, 1.5),
+    'fps_box': (100, 5000),
+    'Atm_altitude': (-1000, 50000),
+    'Atm_pressure': (20.0, 35.0),
+    'Atm_temperature': (-60, 140),
+    'Atm_RelHumidity': (0.0, 1.0),
+    'zerodistance': (10, 2000),
+    'windspeed': (0, 100),
+}
+
+
+def clamp(value, key):
+    lo, hi = VALID_RANGES[key]
+    return max(lo, min(hi, value))
+
 
 import RPi.GPIO as GPIO 
 
@@ -455,7 +474,7 @@ def main():
                 
                         #Wind Inputs for Solution 
                 BallisticThreader.thread.facing = head  
-                BallisticThreader.thread.windspeed = fakewindspeed
+                BallisticThreader.thread.windspeed = clamp(fakewindspeed, 'windspeed')
                 BallisticThreader.thread.wind_head_deg = fakewindheading
                 
                 
@@ -782,7 +801,7 @@ def main():
                 
                         #Wind Inputs for Solution 
                 BallisticThreader.thread.facing = head  
-                BallisticThreader.thread.windspeed = 0
+                BallisticThreader.thread.windspeed = clamp(0, 'windspeed')
                 BallisticThreader.thread.wind_head_deg = 0
                 
                 

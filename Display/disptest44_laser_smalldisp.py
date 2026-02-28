@@ -28,7 +28,26 @@ import CamThreader
 
 import SensorThreaderSlowerRotaryEncodersTRY as SensorThreader 
 
-import BallisticThreader4PrinterAndLaser   as BallisticThreader
+import BallisticThreader4PrinterAndLaser as BallisticThreader
+
+VALID_RANGES = {
+    'caliber': (0.17, 1.0),
+    'bullet_weight_grain': (10, 1000),
+    'bc7_box': (0.01, 1.5),
+    'fps_box': (100, 5000),
+    'Atm_altitude': (-1000, 50000),
+    'Atm_pressure': (20.0, 35.0),
+    'Atm_temperature': (-60, 140),
+    'Atm_RelHumidity': (0.0, 1.0),
+    'zerodistance': (10, 2000),
+    'windspeed': (0, 100),
+}
+
+
+def clamp(value, key):
+    lo, hi = VALID_RANGES[key]
+    return max(lo, min(hi, value))
+
 
 import RPi.GPIO as GPIO 
 
@@ -156,18 +175,18 @@ sleep(5)
 
 ### AFter sleep, load the last configs and set them to the Ballistic Threader :) 
 Loaddata = load("/home/pi/share/Display/configData.npy")
-BallisticThreader.thread.caliber = Loaddata[0,0]
-BallisticThreader.thread.bullet_weight_grain = int(Loaddata[0,1])
+BallisticThreader.thread.caliber = clamp(Loaddata[0,0], 'caliber')
+BallisticThreader.thread.bullet_weight_grain = int(clamp(Loaddata[0,1], 'bullet_weight_grain'))
 BallisticThreader.thread.Gsolver = int(Loaddata[0,2])
-BallisticThreader.thread.bc7_box = Loaddata[0,3]
-BallisticThreader.thread.zerodistance = Loaddata[0,4]
-BallisticThreader.thread.fps_box = int(Loaddata[0,5])
-BallisticThreader.thread.windspeed = Loaddata[0,6]
+BallisticThreader.thread.bc7_box = clamp(Loaddata[0,3], 'bc7_box')
+BallisticThreader.thread.zerodistance = int(clamp(Loaddata[0,4], 'zerodistance'))
+BallisticThreader.thread.fps_box = int(clamp(Loaddata[0,5], 'fps_box'))
+BallisticThreader.thread.windspeed = clamp(Loaddata[0,6], 'windspeed')
 BallisticThreader.thread.wind_head_deg = Loaddata[0,7]
-BallisticThreader.thread.Atm_altitude = Loaddata[0,8]
-BallisticThreader.thread.Atm_pressure = Loaddata[0,9]
-BallisticThreader.thread.Atm_temperature = Loaddata[0,10]
-BallisticThreader.thread.Atm_RelHumidity  = Loaddata[0,11] 
+BallisticThreader.thread.Atm_altitude = clamp(Loaddata[0,8], 'Atm_altitude')
+BallisticThreader.thread.Atm_pressure = clamp(Loaddata[0,9], 'Atm_pressure')
+BallisticThreader.thread.Atm_temperature = clamp(Loaddata[0,10], 'Atm_temperature')
+BallisticThreader.thread.Atm_RelHumidity = clamp(Loaddata[0,11], 'Atm_RelHumidity') 
 focallength = Loaddata[0,12]
 
 BallisticThreader.thread.ResolveAngle = True
@@ -1098,11 +1117,16 @@ def main():
                         SensorThreader.thread.consume_encoder2()
                     elif (menuNumber == 1):
                         settingAdjustNumber = enc2 * 0.001
-                        BallisticThreader.thread.caliber += settingAdjustNumber
+                        BallisticThreader.thread.caliber = clamp(
+                            BallisticThreader.thread.caliber + settingAdjustNumber, 'caliber'
+                        )
                         SensorThreader.thread.consume_encoder2()                       
                     elif (menuNumber == 2):
                         settingAdjustNumber = enc2 * 1
-                        BallisticThreader.thread.bullet_weight_grain += settingAdjustNumber
+                        BallisticThreader.thread.bullet_weight_grain = int(clamp(
+                            BallisticThreader.thread.bullet_weight_grain + settingAdjustNumber,
+                            'bullet_weight_grain',
+                        ))
                         SensorThreader.thread.consume_encoder2()      
                     elif (menuNumber == 3):
                         settingAdjustNumber = enc2 * 1
@@ -1114,11 +1138,16 @@ def main():
                         SensorThreader.thread.consume_encoder2()                          
                     elif (menuNumber == 4):
                         settingAdjustNumber = enc2 * 0.001
-                        BallisticThreader.thread.bc7_box += settingAdjustNumber
+                        BallisticThreader.thread.bc7_box = clamp(
+                            BallisticThreader.thread.bc7_box + settingAdjustNumber, 'bc7_box'
+                        )
                         SensorThreader.thread.consume_encoder2()   
                     elif (menuNumber == 5):
                         settingAdjustNumber = enc2 * 25
-                        BallisticThreader.thread.zerodistance += settingAdjustNumber
+                        BallisticThreader.thread.zerodistance = int(clamp(
+                            BallisticThreader.thread.zerodistance + settingAdjustNumber,
+                            'zerodistance',
+                        ))
                         SensorThreader.thread.consume_encoder2()                          
                     #elif (menuNumber == 6):
                     #    settingAdjustNumber = enc2 * 1
@@ -1131,15 +1160,14 @@ def main():
                     #    SensorThreader.thread.consume_encoder2()                              
                     elif (menuNumber == 6):
                         settingAdjustNumber = enc2 * 5
-                        BallisticThreader.thread.fps_box += settingAdjustNumber
+                        BallisticThreader.thread.fps_box = int(clamp(
+                            BallisticThreader.thread.fps_box + settingAdjustNumber, 'fps_box'
+                        ))
                         SensorThreader.thread.consume_encoder2()    
                     elif (menuNumber == 7):
                         settingAdjustNumber = enc2 * 0.1
-                        windspeederrr= BallisticThreader.thread.windspeed
-                        windspeederrr += settingAdjustNumber
-                        if (windspeederrr < 0):
-                            windspeederrr = 0; 
-                        BallisticThreader.thread.windspeed = windspeederrr; 
+                        windspeederrr = BallisticThreader.thread.windspeed + settingAdjustNumber
+                        BallisticThreader.thread.windspeed = clamp(windspeederrr, 'windspeed') 
                         SensorThreader.thread.consume_encoder2()                          
                     elif (menuNumber == 8):
                         settingAdjustNumber = enc2 * 5
@@ -1390,20 +1418,32 @@ def main():
                         SensorThreader.thread.consume_encoder2()
                     elif (menuNumber == 1):
                         settingAdjustNumber = enc2 * 50
-                        BallisticThreader.thread.Atm_altitude += settingAdjustNumber
+                        BallisticThreader.thread.Atm_altitude = clamp(
+                            BallisticThreader.thread.Atm_altitude + settingAdjustNumber,
+                            'Atm_altitude',
+                        )
                         SensorThreader.thread.consume_encoder2()                       
                     elif (menuNumber == 2):
                         settingAdjustNumber = enc2 * 0.25
-                        BallisticThreader.thread.Atm_pressure += settingAdjustNumber
+                        BallisticThreader.thread.Atm_pressure = clamp(
+                            BallisticThreader.thread.Atm_pressure + settingAdjustNumber,
+                            'Atm_pressure',
+                        )
                         SensorThreader.thread.consume_encoder2()      
                     elif (menuNumber == 3):
                         settingAdjustNumber = enc2 * 1
-                        BallisticThreader.thread.Atm_temperature += settingAdjustNumber
+                        BallisticThreader.thread.Atm_temperature = clamp(
+                            BallisticThreader.thread.Atm_temperature + settingAdjustNumber,
+                            'Atm_temperature',
+                        )
                         SensorThreader.thread.consume_encoder2()    
                          
                     elif (menuNumber == 4):
                         settingAdjustNumber = enc2 * 0.01
-                        BallisticThreader.thread.Atm_RelHumidity += settingAdjustNumber
+                        BallisticThreader.thread.Atm_RelHumidity = clamp(
+                            BallisticThreader.thread.Atm_RelHumidity + settingAdjustNumber,
+                            'Atm_RelHumidity',
+                        )
                         SensorThreader.thread.consume_encoder2()   
                     elif (menuNumber == 5): #latitude 
                         settingAdjustNumber = enc2 * 1
