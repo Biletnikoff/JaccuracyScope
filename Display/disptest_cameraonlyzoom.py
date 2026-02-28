@@ -336,11 +336,8 @@ def main():
             
             
             #From Sensor Thread, Always updating in backgorund 
-            head = 0
             pitch = 0
-            roll = 0
-            fpsSensor  = 0
-            pitch_d = pitch * 57.2957795
+            pitch * 57.2957795
             
             if (changeOpitcs ==1 ):
                 opticres = 1 / ((math.atan(0.00155 / focallength)*57.295779513)*60)
@@ -354,7 +351,7 @@ def main():
             
             
                 pasteimage4 = cam.get_frame() # get new frame from thread
-                fpsCAM  = cam.get_fps()  #grab the output 
+                cam.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 
                 #try this commented.... 
@@ -413,13 +410,12 @@ def main():
                 
                 #############################    BALLISTICS CALCULATION ################################
                 #distance = 125 # Lasered,  will update later yds
-                distance_m = distance * 0.9144
+                distance * 0.9144
             
                 
     
                 
                 #Apply scaling of camera to droppixels 
-                scaling = cam.zoom
                 
              
              
@@ -460,16 +456,10 @@ def main():
 
 
                 
-                oneMoaScreen = opticres
                 
             
                 
-                subhashcolor= (0,255,0)
-                markercolor = (255,255,255)
-                subsubcolor = (255,0,0)
             
-                markeroffsetX = -scopexoffset
-                markeroffsetY = -scopeyoffset
                 
                 
                 

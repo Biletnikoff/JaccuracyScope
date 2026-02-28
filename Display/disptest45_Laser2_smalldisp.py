@@ -404,7 +404,7 @@ def main():
             pitch, roll, lead, wobbleX, wobbleY = sensor.get_orientation()
             head = sensor.get_compass()
             pitch = -pitch - (4.3 / 57.2957795)
-            fpsSensor  = sensor.get_fps()
+            sensor.get_fps()
             pitch_d = pitch * 57.2957795
             
             if (changeOpitcs ==1 ):
@@ -421,7 +421,7 @@ def main():
             
             
                 pasteimage4 = cam.get_frame() # get new frame from thread 
-                fpsCAM  = cam.get_fps()  #grab the output 
+                cam.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 pasteimage4=pasteimage4.resize((240,180),resample=Image.NEAREST) #BIG FPS nearest is fast 
                 
@@ -629,7 +629,7 @@ def main():
                 #solution = [1140,-300, 300, 499]
                 
                 #REsults
-                hit = ((solution[1] - math.sin(pitch - pitch_fake)*distance))
+                ((solution[1] - math.sin(pitch - pitch_fake)*distance))
                 
                 if (bt.solver == "GNUsolver"):
                     dropmoa = solution[6]
@@ -712,7 +712,6 @@ def main():
                 #draw.rectangle((117, 119, 121, 119), (255, 0, 0))  
                 
                 
-                oneMoaScreen = opticres
                 
             
                 
@@ -885,7 +884,7 @@ def main():
                 #print(indicatorcolor)
                 centerx = 119 + impactzoneX
                 centery = 119 + impactzoneY
-                r = (wobble_radius*wobble_radius)/10
+                (wobble_radius*wobble_radius)/10
                 shape = [((centerx-wobble_radius),(centery-wobble_radius)),((centerx+wobble_radius) , (centery+wobble_radius))]
                 draw.arc(shape, start =0 , end = 360 , fill = indicatorcolor)
             
@@ -987,7 +986,7 @@ def main():
                 #distance = 125 # Lasered,  will update later yds
                 distance_m = distance * 0.9144
                 
-                target_elevation =  math.radians(10) # degrees to rads  ########### TODO NOT IMPLEMENTED YET 
+                math.radians(10) # degrees to rads  ########### TODO NOT IMPLEMENTED YET 
                 
             
                 
@@ -1090,7 +1089,7 @@ def main():
                 bt.ScopeMode =2  #not use ballistics in background when settings 
                 bt.dt = 1
                 bt.T = 2
-                fpsBalls = bt.get_output()[2]
+                bt.get_output()[2]
             
             
                 img.paste(image_settings,(0,0))
@@ -1275,7 +1274,7 @@ def main():
             elif(Scope_mode == 3):  #Focal Length Calibration :) 
 
                 pasteimage4 = cam.get_frame() # get new frame from thread 
-                fpsCAM  = cam.get_fps()  #grab the output 
+                cam.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 pasteimage4=pasteimage4.resize((240,180),resample=Image.NEAREST) #BIG FPS nearest is fast  
  
@@ -1343,7 +1342,6 @@ def main():
                 #draw.rectangle((117, 119, 121, 119), (255, 0, 0))  
                 
                 
-                oneMoaScreen = opticres
                 scaling = cam.zoom
             
                 
@@ -1393,7 +1391,7 @@ def main():
                 bt.ScopeMode =2  #not use ballistics in background when settings 
                 bt.dt = 1
                 bt.T = 2
-                fpsBalls = bt.get_output()[2]
+                bt.get_output()[2]
             
             
                 img.paste(image_settingsP2,(0,0))

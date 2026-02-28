@@ -334,7 +334,6 @@ def main():
             #From Sensor Thread, Always updating in backgorund 
             head = 0#SensorThreader.thread.output_heading
             pitch =0# -SensorThreader.thread.pitch
-            roll = 0#SensorThreader.thread.roll
             fpsSensor  = 0# SensorThreader.thread.fpsaveout
             pitch_d = pitch * 57.2957795
             
@@ -476,7 +475,7 @@ def main():
                 #solution = [1140,-300, 300, 499]
                 
                 #REsults
-                hit = ((solution[1] - math.sin(pitch - pitch_fake)*distance))
+                ((solution[1] - math.sin(pitch - pitch_fake)*distance))
                 
                 if (bt.solver == "GNUsolver"):
                     dropmoa = solution[6]
@@ -643,7 +642,6 @@ def main():
                 #draw.rectangle((117, 119, 121, 119), (255, 0, 0))  
                 
                 
-                oneMoaScreen = opticres
                 
             
                 
@@ -698,7 +696,7 @@ def main():
                 #print(indicatorcolor)
                 centerx = 119 + impactzoneX
                 centery = 119 + impactzoneY
-                r = (wobble_radius*wobble_radius)/10
+                (wobble_radius*wobble_radius)/10
                 shape = [((centerx-wobble_radius),(centery-wobble_radius)),((centerx+wobble_radius) , (centery+wobble_radius))]
                 draw.arc(shape, start =0 , end = 360 , fill = indicatorcolor)
             
@@ -746,7 +744,7 @@ def main():
                 distance = 500 # Lasered,  will update later yds
                 distance_m = distance * 0.9144
                 
-                target_elevation =  math.radians(10) # degrees to rads  ########### TODO NOT IMPLEMENTED YET 
+                math.radians(10) # degrees to rads  ########### TODO NOT IMPLEMENTED YET 
                 
             
                 

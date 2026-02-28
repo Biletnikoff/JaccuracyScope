@@ -70,7 +70,7 @@ def range2x(yards: np.ndarray, dist_targ: float) -> np.ndarray:
     plotWidthpx = 100 
     pxoffset  = 5+1 
       
-    h_max = np.max(yards) 
+    np.max(yards) 
     
     
     #if(dist_targ >= 1100 and dist_targ < 3000):
@@ -128,7 +128,7 @@ def range2x2(yards: np.ndarray, dist_targ: float) -> np.ndarray:
     plotWidthpx = 240 
     pxoffset  = 9 
       
-    h_max = np.max(yards) 
+    np.max(yards) 
     
     
     #if(dist_targ >= 1100 and dist_targ < 3000):

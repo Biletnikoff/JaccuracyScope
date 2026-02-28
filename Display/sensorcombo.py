@@ -49,7 +49,6 @@ def convertToheading(rawX,rawY,rawZ):
      #   D = D + 360
        
     #return D
-    good = True
     
     
     #if (x == 0 or x >= 262143):
@@ -90,7 +89,7 @@ def convertToheading(rawX,rawY,rawZ):
    
     normX = (rawX  - xoffset)/xscale
     normY = (rawY - yoffset)/yscale
-    normZ = (rawZ  - zoffset)/zscale
+    (rawZ  - zoffset)/zscale
    
    
     heading_r = math.atan2(normX, 0- normY)

@@ -25,8 +25,6 @@ class DisplayThread(Thread):
         self.disp.reset()  
         self.disp._init()  
         
-        WIDTH = 240 #disp.width
-        HEIGHT = 240 #disp.height
         
         ##disp.set_window(x0=0, y0=0, x1=239, y1=239)
         self.TESTimage=Image.open("TestGUIblank.jpg")  
