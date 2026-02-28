@@ -173,7 +173,7 @@ double SolveforAngler( double bc, double v, double sh,double angle, double zero,
 
 
 
-//Return Results Sepeartely to Pyhton... These have to be sepereated.... usefulshit tho.
+//Return Results Separately to Python. These have to be separated.
 //The ballistics must be solved prior to being able to retrieve any of these.... 
 
 //Determine the position of solution to return. 
@@ -193,8 +193,8 @@ int getThePosition(double targetDistanceYard){
 	
 	
 	//fprintf("%.2f",targetDistanceYard)
-	//printf("Buttholes!!    %.2f",targetDistanceYard);
-	//printf("\nButtholes2!!    %i",distanceYards);
+	//printf("Debug!!    %.2f",targetDistanceYard);
+	//printf("\nDebug2!!    %i",distanceYards);
 	
 	return distanceYards; 
 }
