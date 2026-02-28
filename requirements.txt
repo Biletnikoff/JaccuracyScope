@@ -1,0 +1,7 @@
+picamera2
+adafruit-circuitpython-lsm6ds
+numpy==1.26.4
+pillow
+st7789
+adafruit-circuitpython-thermal-printer
+adafruit-circuitpython-seesaw
