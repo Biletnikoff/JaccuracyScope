@@ -932,7 +932,10 @@ def main():
             
         
         fpsavefr = fpsave/30#00 
-        print("Display: " + str("{:.2f}".format(fpsavefr)) + "  Ballisitcs: " + str("{:.2f}".format(fpsBalls)) + "  Camera:  " + str("{:.2f}".format(fpsCAM)) + "  Sensors:  " + str("{:.2f}".format(fpsSensor)))
+        print(
+            "Display: " + str("{:.2f}".format(fpsavefr)) + "  Ballisitcs: " + str("{:.2f}".format(fpsBalls))
+            + "  Camera:  " + str("{:.2f}".format(fpsCAM)) + "  Sensors:  " + str("{:.2f}".format(fpsSensor))
+        )
         #print("Heading: " + str("{:.2f}".format(head)) + "  Pitch_:  " + str("{:.2f}".format(pitch_d)) + "  Roll:  " + str("{:.2f}".format(roll)))
         
         #print("Camera:  " + str("{:.2f}".format(fpsCAM)))    # "{:.2f}".format(

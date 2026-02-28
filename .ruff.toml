@@ -7,3 +7,5 @@ ignore = []
 
 [lint.per-file-ignores]
 "Display/BallisticThreader.py" = ["E501"]
+"Display/disptest*.py" = ["E402", "F403", "F405"]
+"Display/disp2test*.py" = ["E402", "F403", "F405"]

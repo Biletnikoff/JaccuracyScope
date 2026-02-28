@@ -301,7 +301,9 @@ def show_frames(imger):
 
 
 def main(): 
-    global Scope_mode, zoomtester, dropcounter,distance,debouncer, debounce, drawsubhashes, drawsubsubs, fpsavefr, settingAdjustNumber, menuNumber,inputXShift, inputYShift, scopeyoffset,scopexoffset, flash, zoomincrease, menuNumber, takeimage,focallength,opticPercent,opticres, changeOpitcs
+    global Scope_mode, zoomtester, dropcounter, distance, debouncer, debounce, drawsubhashes, drawsubsubs, \
+        fpsavefr, settingAdjustNumber, menuNumber, inputXShift, inputYShift, scopeyoffset, scopexoffset, \
+        flash, zoomincrease, menuNumber, takeimage, focallength, opticPercent, opticres, changeOpitcs
     #global zoomtester
     #global dropcounter
     #global fpsavefr
@@ -512,7 +514,8 @@ def main():
                     
     
         fpsavefr = fpsave/30#00 
-        #print("Display: " + str("{:.2f}".format(fpsavefr)) + "  Ballisitcs: " + str("{:.2f}".format(fpsBalls)) + "  Camera:  " + str("{:.2f}".format(fpsCAM)) + "  Sensors:  " + str("{:.2f}".format(fpsSensor)))
+        #print("Display: " + str("{:.2f}".format(fpsavefr)) + "  Ballisitcs: " + str("{:.2f}".format(fpsBalls))
+        #    + "  Camera:  " + str("{:.2f}".format(fpsCAM)) + "  Sensors:  " + str("{:.2f}".format(fpsSensor)))
         print("CPU Temp is : " + str(cpu.temperature))
     
     
