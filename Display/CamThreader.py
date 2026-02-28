@@ -1,7 +1,7 @@
 """Camera capture thread for Pi Camera via picamera2."""
 
 import time
-from threading import Thread, Lock
+from threading import Thread, Lock, Event
 
 from picamera2 import Picamera2
 
@@ -20,6 +20,7 @@ class CamThread(Thread):
     def __init__(self, fps_mode='fast') -> None:
         Thread.__init__(self)
         self._lock = Lock()
+        self._stop_event = Event()
         self.fps_mode = fps_mode
 
         self.val1 = 1
@@ -85,8 +86,11 @@ class CamThread(Thread):
         with self._lock:
             return self.fpsaveout
 
+    def stop(self) -> None:
+        self._stop_event.set()
+
     def _run_loop(self) -> None:
-        while True:
+        while not self._stop_event.is_set():
             #sleep(.1)
             #self.val1 = self.val1 +1
 

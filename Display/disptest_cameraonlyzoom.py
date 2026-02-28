@@ -6,6 +6,7 @@ BigdisplayOption = False #False  True
 if BigdisplayOption:
     from tkinter import *
     
+import signal
 import ST7789  
 from PIL import Image 
 
@@ -14,6 +15,9 @@ if BigdisplayOption:
     
 from time import sleep 
 import time
+
+from logger import setup_logging
+setup_logging()
 from PIL import ImageFont 
 from PIL import ImageDraw
 from PIL import ImageChops
@@ -1403,12 +1407,23 @@ GPIO.add_event_detect(J_2, GPIO.RISING, callback=DOWN_switch_callback)    #B2_sw
 #GPIO.add_event_detect(J_CENTER, GPIO.RISING, callback=CENTER_switch_callback)      
 #            
 
+def shutdown_handler(signum, frame):
+    raise SystemExit(0)
+
+
 # Repeat after an interval to capture continiously
 if __name__ == "__main__":
-    print("Starting Program :) ")
-    #Scope_mode = 999999
-    #print(Scope_mode)
-    main()
+    signal.signal(signal.SIGTERM, shutdown_handler)
+    try:
+        print("Starting Program :) ")
+        main()
+    finally:
+        cam.stop()
+        try:
+            import RPi.GPIO as GPIO
+            GPIO.cleanup()
+        except Exception:
+            pass
 
 
   

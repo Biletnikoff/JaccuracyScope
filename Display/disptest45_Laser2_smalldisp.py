@@ -6,6 +6,7 @@ BigdisplayOption =  False #False  True
 if BigdisplayOption:
     from tkinter import *
     
+import signal
 import ST7789  
 from PIL import Image 
 
@@ -14,6 +15,9 @@ if BigdisplayOption:
     
 from time import sleep 
 import time
+
+from logger import setup_logging
+setup_logging()
 from PIL import ImageFont 
 from PIL import ImageDraw
 from PIL import ImageChops
@@ -148,9 +152,9 @@ wind = 0
 WIDTH = 240 #disp.width
 HEIGHT = 240 #disp.height
 ##disp.set_window(x0=0, y0=0, x1=239, y1=239)
-img=Image.open(str(ASSETS_DIR / "LoadingScreen2.jpg"))  
-img=img.resize((240,240),resample=Image.LANCZOS) 
-disp.display(img,xs=0,xe=239,ys=0,ye=239)
+_loading_screen = Image.open(str(ASSETS_DIR / "LoadingScreen2.jpg"))
+img = _loading_screen.resize((240, 240), resample=Image.LANCZOS)
+disp.display(img, xs=0, xe=239, ys=0, ye=239)
 
 
 if BigdisplayOption:
@@ -208,14 +212,16 @@ if BigdisplayOption:
 
 
 
-image2=Image.open(str(ASSETS_DIR / "COMPASS4.jpg"))   
-image2=image2.resize((180,7),resample=Image.LANCZOS)
+_compass_img = Image.open(str(ASSETS_DIR / "COMPASS4.jpg"))
+image2 = _compass_img.resize((180, 7), resample=Image.LANCZOS)
 
+_image_lob = Image.open(str(ASSETS_DIR / "lobstermodebase2.jpg"))
+image_lob = _image_lob
 
-image_lob=Image.open(str(ASSETS_DIR / "lobstermodebase2.jpg"))   
-
-image_settings=Image.open(str(ASSETS_DIR / "SettingsMenuBase5.jpg"))   #was 4
-image_settingsP2 = Image.open(str(ASSETS_DIR / "SettingsMenuBasePAGE2.jpg"))
+_image_settings = Image.open(str(ASSETS_DIR / "SettingsMenuBase5.jpg"))
+image_settings = _image_settings
+_image_settingsP2 = Image.open(str(ASSETS_DIR / "SettingsMenuBasePAGE2.jpg"))
+image_settingsP2 = _image_settingsP2
 
 font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 8)
 
@@ -2490,12 +2496,25 @@ GPIO.add_event_detect(J_3, GPIO.RISING, callback=B3_switch_callback)
 #GPIO.add_event_detect(J_CENTER, GPIO.RISING, callback=CENTER_switch_callback)      
             
 
+def shutdown_handler(signum, frame):
+    raise SystemExit(0)
+
+
 # Repeat after an interval to capture continiously
 if __name__ == "__main__":
-    print("Starting Program :) ")
-    #Scope_mode = 999999
-    #print(Scope_mode)
-    main()
+    signal.signal(signal.SIGTERM, shutdown_handler)
+    try:
+        print("Starting Program :) ")
+        main()
+    finally:
+        bt.stop()
+        cam.stop()
+        sensor.stop()
+        try:
+            import RPi.GPIO as GPIO
+            GPIO.cleanup()
+        except Exception:
+            pass
 
 
   
