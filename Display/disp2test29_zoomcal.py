@@ -17,18 +17,18 @@ import time
 from PIL import ImageFont 
 from PIL import ImageDraw
 from PIL import ImageChops
-import sys
 #import ballistics_test2 as ballistic
 import numpy as np
 import math
 
-import io 
 
 import CamThreader 
 
 #import SensorThreader 
 
 import BallisticThreaderAdvancedExtension as BallisticThreader
+
+from config import ASSETS_DIR
 
 VALID_RANGES = {
     'caliber': (0.17, 1.0),
@@ -134,12 +134,12 @@ disp._init()
 
 
 MESSAGE = "Wind: 5.0 mph"
-wind = 0;
+wind = 0
 
 WIDTH = 240 #disp.width
 HEIGHT = 240 #disp.height
 ##disp.set_window(x0=0, y0=0, x1=239, y1=239)
-img=Image.open("/home/pi/share/Display/LoadingScreen2.jpg")  
+img=Image.open(str(ASSETS_DIR / "LoadingScreen2.jpg"))  
 img=img.resize((240,240),resample=Image.LANCZOS) 
 disp.display(img,xs=0,xe=239,ys=0,ye=239)
 
@@ -172,13 +172,13 @@ if BigdisplayOption:
 
 
 
-image2=Image.open("/home/pi/share/Display/COMPASS4.jpg")   
+image2=Image.open(str(ASSETS_DIR / "COMPASS4.jpg"))   
 image2=image2.resize((180,7),resample=Image.LANCZOS)
 
 
-image_lob=Image.open("/home/pi/share/Display/lobstermodebase2.jpg")   
+image_lob=Image.open(str(ASSETS_DIR / "lobstermodebase2.jpg"))   
 
-image_settings=Image.open("/home/pi/share/Display/SettingsMenuBase3.jpg") 
+image_settings=Image.open(str(ASSETS_DIR / "SettingsMenuBase3.jpg")) 
 
 
 font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 8)
@@ -201,7 +201,7 @@ fps = 0
 
 
 
-imgcount = 1 ; 
+imgcount = 1  
 
 
 distance = 485.0
@@ -213,7 +213,7 @@ fpsavefr= 0
    
 
 
-looper= True;
+looper= True
 
 ChooseSolver = "GNUsolver"  #"Jacksolver"   or "GNUsolver" 
 BallisticThreader.thread.solver = ChooseSolver
@@ -221,7 +221,7 @@ BallisticThreader.thread.solver = ChooseSolver
 
 
 #variables needed for impact Preview box and smoothing 
-flash = True; 
+flash = True 
 droppixelsAverage = 0 
 windpixelsAverage = 0 
 filtersize = 24
@@ -254,7 +254,7 @@ drawsubsubs  = True
 
 
 #menu fo the settings 
-menuNumber= 0;
+menuNumber= 0
 
 #needed hard 
 focallength = 103 #mm ########needs calibration 
@@ -349,7 +349,7 @@ def main():
             pitch =0# -SensorThreader.thread.pitch
             roll = 0#SensorThreader.thread.roll
             fpsSensor  = 0# SensorThreader.thread.fpsaveout
-            pitch_d = pitch * 57.2957795;
+            pitch_d = pitch * 57.2957795
             
             if (changeOpitcs ==1 ):
                 opticres = 1 / ((math.atan(0.00155 / focallength)*57.295779513)*60)
@@ -358,7 +358,7 @@ def main():
             
             
             if ( Scope_mode == 0):   #0 is regular scope #1 is LOBSTER mode 
-                BallisticThreader.thread.ScopeMode =0;
+                BallisticThreader.thread.ScopeMode =0
                 BallisticThreader.thread.dt = 0.05
                 BallisticThreader.thread.T = 3
             
@@ -425,7 +425,7 @@ def main():
                 
                 #############################    BALLISTICS CALCULATION ################################
                 distance = 143 # Lasered,  will update later yds
-                distance_m = distance * 0.9144;
+                distance_m = distance * 0.9144
                 fakewindspeed = 0 #mph 
                 fakewindheading = 90 #deg (east)
                     
@@ -448,7 +448,7 @@ def main():
                 sight_angle = ( BallisticThreader.thread.gunSightangle * math.pi/180)#rads 
                 
                 
-                vstart= 2600*0.3048; #mps   #input 2600 from settings somewhere... with space.. 
+                vstart= 2600*0.3048 #mps   #input 2600 from settings somewhere... with space.. 
                 #pitch_d = pitch * 57.2957795
                 pitch_fake = (4/60) * math.pi /180
                     
@@ -532,8 +532,8 @@ def main():
                 
             
                 
-                droppixelpool[dropcounter] = - (dropmoa_pix ) * 180 /scaling;
-                windpixelpool[dropcounter] = - (windmoa_pix ) * 180 /scaling;
+                droppixelpool[dropcounter] = - (dropmoa_pix ) * 180 /scaling
+                windpixelpool[dropcounter] = - (windmoa_pix ) * 180 /scaling
                 dropcounter += 1 
                 if (dropcounter > filtersize-1 ):
                     dropcounter = 0
@@ -548,8 +548,8 @@ def main():
                 #impactzoneX=- ( windmoa_pix / scaling )  / added_scale;
                 
     
-                impactzoneY= - ( (dropmoa + scopeyoffset) * opticPercent ) * 180 /scaling; #180image tall
-                impactzoneX = - ( (windmoa + scopexoffset) * opticPercent ) * 180 /scaling;
+                impactzoneY= - ( (dropmoa + scopeyoffset) * opticPercent ) * 180 /scaling #180image tall
+                impactzoneX = - ( (windmoa + scopexoffset) * opticPercent ) * 180 /scaling
                 
     
                 
@@ -748,7 +748,7 @@ def main():
             
             
             elif (Scope_mode == 1):   #LOBSTER MODE 
-                BallisticThreader.thread.ScopeMode =1;    #Scope_mode
+                BallisticThreader.thread.ScopeMode =1    #Scope_mode
                 BallisticThreader.thread.dt = 2
                 BallisticThreader.thread.T = 60
                 
@@ -760,7 +760,7 @@ def main():
     
                 #############################    BALLISTICS CALCULATION ################################
                 distance = 500 # Lasered,  will update later yds
-                distance_m = distance * 0.9144;
+                distance_m = distance * 0.9144
                 
                 target_elevation =  math.radians(10) # degrees to rads  ########### TODO NOT IMPLEMENTED YET 
                 
@@ -782,7 +782,7 @@ def main():
                 sight_angle = (BallisticThreader.thread.gunSightangle * math.pi/180)#rads 
                 
                 
-                vstart= 2600*0.3048; #mps   #input 2600 from settings somewhere... with space.. 
+                vstart= 2600*0.3048 #mps   #input 2600 from settings somewhere... with space.. 
                 #pitch_d = pitch * 57.2957795
                 pitch_fake = (4/60) * math.pi /180
                     
@@ -850,7 +850,7 @@ def main():
             
                 
             elif(Scope_mode == 2):  #settings menu 
-                BallisticThreader.thread.ScopeMode =2;  #not use ballistics in background when settings 
+                BallisticThreader.thread.ScopeMode =2  #not use ballistics in background when settings 
                 BallisticThreader.thread.dt = 1
                 BallisticThreader.thread.T = 2
                 fpsBalls = BallisticThreader.thread.fpsaveout
@@ -944,11 +944,11 @@ def main():
                 if (pitch_d > 38.0):
                     BallisticThreader.thread.solver = "Jacksolver"
                     #time.sleep(0.3)
-                    Scope_mode = 1; 
+                    Scope_mode = 1 
                 else: 
                     BallisticThreader.thread.solver = ChooseSolver
                     #time.sleep(0.3)
-                    Scope_mode = 0; 
+                    Scope_mode = 0 
                 
             
     

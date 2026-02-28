@@ -43,3 +43,8 @@ repos:
         language: pygrep
         types: [python, c]
         args: [-i]
+      - id: no-hardcoded-paths
+        name: Block hardcoded Pi paths
+        entry: '/home/pi/share/'
+        language: pygrep
+        types: [python, shell]
