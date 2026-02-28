@@ -51,7 +51,7 @@ GPIO.setmode(GPIO.BCM)
 ###J_1 = 21
 ###J_2 = 20
 ###J_3 = 16
-###GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons so you dont short shit lol 
+###GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons - avoid shorting GPIO 
 ###GPIO.setup(J_DOWN, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 ###GPIO.setup(J_LEFT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 ###GPIO.setup(J_RIGHT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
@@ -79,7 +79,7 @@ GPIO.setmode(GPIO.BCM)
 #J_2 = 20
 #J_3 = 16
 
-#GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons so you dont short shit lol 
+#GPIO.setup(J_UP, GPIO.IN,pull_up_down=GPIO.PUD_UP) ######buttons - avoid shorting GPIO 
 #GPIO.setup(J_DOWN, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 #GPIO.setup(J_LEFT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
 #GPIO.setup(J_RIGHT, GPIO.IN,pull_up_down=GPIO.PUD_UP) 
@@ -198,7 +198,7 @@ distance = 500
 inc= 1
 pos = 270
 
-fpsCAM  = CamThreader.thread.fpsaveout
+fpsCAM  = CamThreader.thread.get_fps()
 fpsavefr= 0 
    
 
@@ -244,7 +244,7 @@ menuNumber= 0;
 settingAdjustNumber = 0.000; 
 
 #needed hard 
-focallength = 77.25 #mm ########OHHHH THIS IS SHITTY    #.75 facto roff... try 77.25 not 103 
+focallength = 77.25 #mm ########needs calibration - try 77.25 not 103 
 
 #opticres = 14.0752366 #pixels per MOA 
 opticres = 1 / ((math.atan(0.00155 / focallength)*57.295779513)*60)
@@ -354,8 +354,8 @@ def main():
             
             
             
-                pasteimage4 = CamThreader.thread.imageout # get new frame from thread 
-                fpsCAM  = CamThreader.thread.fpsaveout  #grab the output 
+                pasteimage4 = CamThreader.thread.get_frame() # get new frame from thread
+                fpsCAM  = CamThreader.thread.get_fps()  #grab the output 
                 #pasteimage4.show() #FOR DEBUG ONLY DONT USE LOOPING OPENS WINDOW 
                 
                 #try this commented.... 

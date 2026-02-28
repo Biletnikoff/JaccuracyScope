@@ -24,3 +24,22 @@ repos:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: [feat, fix, refactor, docs, test, chore, ci, perf, safety]
+
+  - repo: local
+    hooks:
+      - id: no-direct-thread-access
+        name: Block direct thread attribute mutation
+        entry: 'Threader\.thread\.\w+\s*='
+        language: pygrep
+        types: [python]
+      - id: no-bare-except
+        name: Block bare except clauses
+        entry: 'except\s*:'
+        language: pygrep
+        types: [python]
+      - id: no-profanity
+        name: Block unprofessional comments
+        entry: '(shit|fuck|wtf|cock|buttholes)'
+        language: pygrep
+        types: [python, c]
+        args: [-i]

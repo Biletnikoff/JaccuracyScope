@@ -1,8 +1,8 @@
-from picamera2 import Picamera2, Preview
-from threading import Thread 
-import numpy as np
-from PIL import Image  #need ? 
-from time import sleep
+from picamera2 import Picamera2
+from threading import Thread, Lock
+import logging
+
+logger = logging.getLogger(__name__)
 import time 
 
 
@@ -11,8 +11,8 @@ class CameraThread(Thread):
     def __init__(self): 
     
         Thread.__init__(self)
-        
-        
+        self._lock = Lock()
+
         self.val1 = 1
         self.clickx = 0
         self.clicky = 0 
@@ -20,8 +20,8 @@ class CameraThread(Thread):
         self.clickyOld = 0 
         
         self.val1 = 1
-        self.zoom = 1.0; 
-        self.zoomold = 1.0; 
+        self.zoom = 1.0 
+        self.zoomold = 1.0 
         
         #initial Camera Setup! 
         #instantiate the processes
@@ -53,8 +53,8 @@ class CameraThread(Thread):
                 
         
         self.fpsaveout = 0
-        
-        
+        self.imageout = None
+
         #Create the variables needed 
         
         
@@ -63,75 +63,55 @@ class CameraThread(Thread):
         
         
         
-    def run(self):
-        
-        while True: 
+    def get_frame(self):
+        with self._lock:
+            return self.imageout
+
+    def get_fps(self):
+        with self._lock:
+            return self.fpsaveout
+
+    def _run_loop(self):
+        while True:
             #sleep(.1)
-            
             #self.val1 = self.val1 +1
 
-            
-            #Get a frame : 
-            fpsave=0 
-            
-            for i in range (1,30,1): 
+            #Get a frame :
+            fpsave=0
+
+            for i in range (1,30,1):
                 t_start = time.time()
-                
+
                 (buffer, ), metadata = self.camera.capture_buffers(["main"])
 
-                self.imageout = self.camera.helpers.make_image(buffer, self.camera.camera_configuration()["main"])   
-
-                #print(self.camera.capture_metadata()['ScalerCrop'][2:])
-
+                imageout = self.camera.helpers.make_image(buffer, self.camera.camera_configuration()["main"])
 
                 if ( self.zoom != self.zoomold or self.clickx != self.clickxOld or self.clicky != self.clickyOld):
-                    #mode zero limits 'crop_limits': (696, 528, 2664, 1980) 
-                    size = [int(s * self.zoom) for s in self.OGsize]   #0.0625
-                    offset = [(r - s) // 2 for r, s in zip(self.full_res, size)] 
-                    offset[0] = offset[0] + self.clickx 
-                    offset[1] = offset[1] + self.clicky 
-                    self.camera.set_controls({"ScalerCrop": offset + size })# , "FrameRate": (45)})
+                    size = [int(s * self.zoom) for s in self.OGsize]
+                    offset = [(r - s) // 2 for r, s in zip(self.full_res, size)]
+                    offset[0] = offset[0] + self.clickx
+                    offset[1] = offset[1] + self.clicky
+                    self.camera.set_controls({"ScalerCrop": offset + size })
                     self.zoomold = self.zoom
                     self.clickxOld = self.clickx
                     self.clickyOld = self.clicky
-                    #print("ZOOMING" + str(self.zoom))
- 
 
-
- 
-                #if ( self.clickx != self.clickxOld):
-                #    #mode zero limits 'crop_limits': (696, 528, 2664, 1980) 
-                #    size = [int(s * self.zoom) for s in self.OGsize]   #0.0625
-                #    offset = [(r - s) // 2 for r, s in zip(self.full_res, size)] 
-                #    offset[0] = offset[0] + self.clickx 
-                #    self.camera.set_controls({"ScalerCrop": offset + size , "FrameRate": (45)})
-                #    self.clickxOld = self.clickx
-                #    #print("ZOOMING" + str(self.zoom))    
-                #
-                #if ( self.clicky != self.clickyOld):
-                #    #mode zero limits 'crop_limits': (696, 528, 2664, 1980) 
-                #    size = [int(s * self.zoom) for s in self.OGsize]   #0.0625
-                #    offset = [(r - s) // 2 for r, s in zip(self.full_res, size)] 
-                #    offset[1] = offset[1] + self.clicky 
-                #    self.camera.set_controls({"ScalerCrop": offset + size , "FrameRate": (45)})
-                #    self.clickxOld = self.clickx
-                #    #print("ZOOMING" + str(self.zoom))    
-                #        
-                    
-                
-                
                 t_end = time.time()
-     
                 fps = -1/(t_start - t_end)
                 fpsave = fpsave + (fps/30)
-                
-                
-            #fpsave = fpsave/20
-            self.fpsaveout = fpsave
-            
-            
-            
-            
+
+                with self._lock:
+                    self.imageout = imageout
+
+            with self._lock:
+                self.fpsaveout = fpsave
+
+    def run(self):
+        try:
+            self._run_loop()
+        except Exception:
+            logger.exception("Thread %s died unexpectedly", self.__class__.__name__)
+
 
 #def getFrame(obj): 
 #    
