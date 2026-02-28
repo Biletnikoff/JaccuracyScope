@@ -69,14 +69,14 @@ Update this table as phases complete.
 
 | Phase | Task | Branch | Status |
 |-------|------|--------|--------|
-| 0 | Hooks infrastructure | `refactor/0-hooks-infrastructure` | pending |
-| 1a | C library safety | `refactor/1a-c-library-safety` | pending |
-| 1b | Thread robustness | `refactor/1b-thread-robustness` | pending |
-| 1c | Input validation | `refactor/1c-input-validation` | pending |
-| 2a | Config system | `refactor/2a-config-system` | pending |
-| 2b | Consolidate threaders | `refactor/2b-consolidate-threaders` | pending |
+| 0 | Hooks infrastructure | `refactor/0-hooks-infrastructure` | complete |
+| 1a | C library safety | `refactor/1a-c-library-safety` | complete |
+| 1b | Thread robustness | `refactor/1b-thread-robustness` | complete |
+| 1c | Input validation | `refactor/1c-input-validation` | complete |
+| 2a | Config system | `refactor/2a-config-system` | complete |
+| 2b | Consolidate threaders | `refactor/2b-consolidate-threaders` | complete |
 | 2c | Testing | `refactor/2c-testing` | pending |
-| 2d | API docs | `refactor/2d-api-docs` | pending |
+| 2d | API docs | `refactor/2d-api-docs` | complete |
 | 3a | Image performance | `refactor/3a-image-perf` | pending |
 | 3b | GPIO cleanup | `refactor/3b-gpio-cleanup` | pending |
 | 3c | Logging framework | `refactor/3c-logging` | pending |
