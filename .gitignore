@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+
+# Compiled shared libraries
+*.so
+*.dylib
+
+# Logs
+Display/logs/
+
+# Testing / caching
+.pytest_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (generated at runtime)
+Display/config.json
