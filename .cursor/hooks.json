@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/lint-edited-file.sh",
+        "timeout": 30
+      },
+      {
+        "command": ".cursor/hooks/check-c-compile.sh",
+        "timeout": 30
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/run-tests-on-stop.sh",
+        "timeout": 120,
+        "loop_limit": 3
+      }
+    ]
+  }
+}
